@@ -8,11 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 import ProvisionForm from "./provision-form";
 import { useProvisions } from "../../context/ProvisionContext";
 import { deleteImage } from "../../firebase/storage";
+import { useResourceHubs } from "../../context/ResourceHubContext";
+import { updateResourceHub } from "../../firebase/firestore";
 
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { provisions, deleteProvision, loading, error } = useProvisions();
   const [editingProvision, setEditingProvision] = useState(null);
   const { toast } = useToast();
+  const { resourceHubs } = useResourceHubs();
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -34,10 +37,29 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const handleDelete = async (id) => {
     try {
       const provision = provisions.find((p) => p.id === id);
-      if (provision?.imageUrl) {
+      if (!provision) return;
+
+      // First, remove this provision from all resource hubs that reference it
+      const updateHubPromises = resourceHubs
+        .filter((hub) => hub.selectedProvisions?.includes(id))
+        .map((hub) => {
+          const newSelectedProvisions = (hub.selectedProvisions || []).filter(
+            (provisionId) => provisionId !== id
+          );
+          return updateResourceHub(hub.id, {
+            ...hub,
+            selectedProvisions: newSelectedProvisions
+          });
+        });
+
+      // Delete the image if it exists
+      if (provision.imageUrl) {
         await deleteImage(provision.imageUrl);
       }
-      await deleteProvision(id);
+
+      // Wait for all updates to complete
+      await Promise.all([...updateHubPromises, deleteProvision(id)]);
+
       toast({
         title: "Success",
         description: "Provision deleted successfully"

@@ -118,6 +118,11 @@ export default function ResourceHubForm({
       let imageUrl = formData.imageUrl;
 
       if (imageFile) {
+        // If updating and there's an existing image, delete it first
+        if (initialData?.imageUrl) {
+          await deleteImage(initialData.imageUrl);
+        }
+        // Upload the new image
         const path = `resource-hubs/${Date.now()}-${imageFile.name}`;
         imageUrl = await uploadImage(imageFile, path);
       }
@@ -134,7 +139,28 @@ export default function ResourceHubForm({
           description: "Resource hub updated successfully"
         });
       } else {
-        await addResourceHub(dataToSave);
+        // Create the new resource hub first
+        const newDocRef = await addResourceHub(dataToSave);
+
+        // Then update all selected provisions to include this new hub
+        const updateProvisionPromises = provisions
+          .filter((provision) =>
+            formData.selectedProvisions.includes(provision.id)
+          )
+          .map((provision) => {
+            const newSelectedHubs = [
+              ...(provision.selectedHubs || []),
+              newDocRef.id
+            ];
+            return updateProvision(provision.id, {
+              ...provision,
+              selectedHubs: newSelectedHubs
+            });
+          });
+
+        // Wait for all provision updates to complete
+        await Promise.all(updateProvisionPromises);
+
         toast({
           title: "Success",
           description: "Resource hub created successfully"
@@ -153,31 +179,46 @@ export default function ResourceHubForm({
   };
 
   const handleProvisionToggle = async (provisionId, checked) => {
-    const newSelectedProvisions = checked
-      ? [...formData.selectedProvisions, provisionId]
-      : formData.selectedProvisions.filter((id) => id !== provisionId);
+    try {
+      const newSelectedProvisions = checked
+        ? [...formData.selectedProvisions, provisionId]
+        : formData.selectedProvisions.filter((id) => id !== provisionId);
 
-    // Update local state
-    setFormData({
-      ...formData,
-      selectedProvisions: newSelectedProvisions
-    });
+      // Update local state
+      setFormData({
+        ...formData,
+        selectedProvisions: newSelectedProvisions
+      });
 
-    // Update the provision's selectedHubs array if we're editing an existing hub
-    if (initialData?.id) {
-      const provision = provisions.find((p) => p.id === provisionId);
-      if (provision) {
-        const newSelectedHubs = checked
-          ? [...(provision.selectedHubs || []), initialData.id]
-          : (provision.selectedHubs || []).filter(
-              (id) => id !== initialData.id
-            );
+      // If editing an existing hub, update both sides of the relationship
+      if (initialData?.id) {
+        const provision = provisions.find((p) => p.id === provisionId);
+        if (provision) {
+          const newSelectedHubs = checked
+            ? [...(provision.selectedHubs || []), initialData.id]
+            : (provision.selectedHubs || []).filter(
+                (id) => id !== initialData.id
+              );
 
-        await updateProvision(provisionId, {
-          ...provision,
-          selectedHubs: newSelectedHubs
-        });
+          // Update both documents in Firestore
+          await Promise.all([
+            updateProvision(provisionId, {
+              ...provision,
+              selectedHubs: newSelectedHubs
+            }),
+            updateResourceHub(initialData.id, {
+              ...formData,
+              selectedProvisions: newSelectedProvisions
+            })
+          ]);
+        }
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update relationship",
+        variant: "destructive"
+      });
     }
   };
 

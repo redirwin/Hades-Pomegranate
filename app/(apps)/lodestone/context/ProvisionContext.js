@@ -47,6 +47,7 @@ export function ProvisionProvider({ children }) {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      return { id: newDocRef.id, ...provisionData };
     } catch (error) {
       throw error;
     }

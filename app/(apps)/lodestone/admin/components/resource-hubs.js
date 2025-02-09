@@ -8,9 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import ResourceHubForm from "./resource-hub-form";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { deleteImage } from "../../firebase/storage";
+import { useProvisions } from "../../context/ProvisionContext";
 
 export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const { resourceHubs, deleteResourceHub, loading, error } = useResourceHubs();
+  const { provisions, updateProvision } = useProvisions();
   const [editingHub, setEditingHub] = useState(null);
   const { toast } = useToast();
 
@@ -22,10 +24,29 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const handleDelete = async (id) => {
     try {
       const hub = resourceHubs.find((h) => h.id === id);
-      if (hub?.imageUrl) {
+      if (!hub) return;
+
+      // First, remove this hub from all provisions that reference it
+      const updateProvisionPromises = provisions
+        .filter((provision) => provision.selectedHubs?.includes(id))
+        .map((provision) => {
+          const newSelectedHubs = (provision.selectedHubs || []).filter(
+            (hubId) => hubId !== id
+          );
+          return updateProvision(provision.id, {
+            ...provision,
+            selectedHubs: newSelectedHubs
+          });
+        });
+
+      // Delete the image if it exists
+      if (hub.imageUrl) {
         await deleteImage(hub.imageUrl);
       }
-      await deleteResourceHub(id);
+
+      // Wait for all updates to complete
+      await Promise.all([...updateProvisionPromises, deleteResourceHub(id)]);
+
       toast({
         title: "Success",
         description: "Resource hub deleted successfully"

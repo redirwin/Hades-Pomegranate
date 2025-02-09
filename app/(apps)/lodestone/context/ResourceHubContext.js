@@ -47,6 +47,7 @@ export function ResourceHubProvider({ children }) {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      return { id: newDocRef.id, ...hubData };
     } catch (error) {
       throw error;
     }
