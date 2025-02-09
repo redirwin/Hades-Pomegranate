@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Admin() {
   const { user, logout } = useAuth();
@@ -27,18 +28,12 @@ export default function Admin() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
         <div className="flex gap-4 items-center">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded transition-colors"
-          >
-            Home
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded transition-colors"
-          >
+          <Button variant="default" asChild>
+            <Link href="/">Home</Link>
+          </Button>
+          <Button variant="default" onClick={handleLogout}>
             Logout
-          </button>
+          </Button>
         </div>
       </div>
       <div>
