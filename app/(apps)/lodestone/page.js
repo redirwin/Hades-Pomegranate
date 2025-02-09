@@ -24,8 +24,8 @@ export default function Lodestone() {
   };
 
   return (
-    <div className="h-screen p-8 relative">
-      <nav className="absolute top-8 right-8">
+    <div className="min-h-screen flex flex-col p-4 sm:p-8">
+      <nav className="w-full flex justify-end mb-8">
         {user ? (
           <Button variant="default" asChild>
             <Link href="/lodestone/admin">Admin</Link>
@@ -40,11 +40,11 @@ export default function Lodestone() {
           </Button>
         )}
       </nav>
-      <main className="h-full flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
+      <main className="flex-1 flex flex-col items-center justify-center">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
           Welcome to Lodestone
         </h1>
-        <p className="text-foreground/80">
+        <p className="text-lg sm:text-xl text-foreground/80">
           Create and manage inventory lists for your RPG characters.
         </p>
       </main>
