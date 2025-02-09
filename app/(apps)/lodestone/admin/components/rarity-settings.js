@@ -7,6 +7,18 @@ import { useRarity } from "../../context/RarityContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 
+const DEFAULT_RARITY_OPTIONS = [
+  { value: "Junk", weight: 100 },
+  { value: "Common", weight: 75 },
+  { value: "Uncommon", weight: 45 },
+  { value: "Rare", weight: 25 },
+  { value: "Very Rare", weight: 15 },
+  { value: "Legendary", weight: 3 },
+  { value: "Artifact", weight: 2 },
+  { value: "Wondrous", weight: 1 },
+  { value: "Varies", weight: "random" }
+];
+
 export default function RaritySettings() {
   const { rarityOptions, updateRarityOptions, loading, error } = useRarity();
   const { toast } = useToast();
@@ -19,12 +31,39 @@ export default function RaritySettings() {
 
   const handleUpdateWeight = (index, value) => {
     const newOptions = [...localOptions];
-    newOptions[index] = {
-      ...newOptions[index],
-      weight: value
-    };
+    if (value === "random") {
+      newOptions[index] = {
+        ...newOptions[index],
+        weight: "random"
+      };
+    } else {
+      // Convert to integer
+      const numValue = parseInt(value) || 0;
+      newOptions[index] = {
+        ...newOptions[index],
+        weight: numValue
+      };
+    }
     setLocalOptions(newOptions);
     setIsDirty(true);
+  };
+
+  const handleReset = async () => {
+    try {
+      await updateRarityOptions(DEFAULT_RARITY_OPTIONS);
+      setLocalOptions(DEFAULT_RARITY_OPTIONS);
+      setIsDirty(false);
+      toast({
+        title: "Success",
+        description: "Rarity settings reset to defaults"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset rarity settings",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -82,7 +121,9 @@ export default function RaritySettings() {
                   <Input
                     value={rarity.weight}
                     onChange={(e) => handleUpdateWeight(index, e.target.value)}
-                    type="text"
+                    type="number"
+                    min={0}
+                    step={1}
                     disabled={rarity.weight === "random"}
                     className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
@@ -93,7 +134,10 @@ export default function RaritySettings() {
         ))}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between gap-2">
+        <Button variant="ghost" onClick={handleReset} type="button">
+          Reset to Default
+        </Button>
         <Button onClick={handleSave} disabled={!isDirty}>
           Save Changes
         </Button>

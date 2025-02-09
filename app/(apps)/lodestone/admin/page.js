@@ -56,9 +56,7 @@ export default function Admin() {
                   </Button>
                   <h1 className="text-xl font-bold">Lodestone Admin</h1>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleLogout}>
-                  Logout
-                </Button>
+                <Button onClick={handleLogout}>Logout</Button>
               </div>
             </header>
 
@@ -72,11 +70,11 @@ export default function Admin() {
               >
                 <div className="sticky top-[57px] z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <TabsList className="w-full justify-start p-0 h-12">
+                    <TabsTrigger value="provisions" className="flex-1">
+                      🎒 Resources
+                    </TabsTrigger>
                     <TabsTrigger value="hubs" className="flex-1">
                       📍 Resource Hubs
-                    </TabsTrigger>
-                    <TabsTrigger value="provisions" className="flex-1">
-                      🎒 Provisions
                     </TabsTrigger>
                     <TabsTrigger value="settings" className="flex-1">
                       ⚙️ Settings

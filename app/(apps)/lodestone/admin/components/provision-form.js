@@ -91,13 +91,13 @@ export default function ProvisionForm({
         await updateProvision(initialData.id, dataToSave);
         toast({
           title: "Success",
-          description: "Provision updated successfully"
+          description: "Resource updated successfully"
         });
       } else {
-        // Create the new provision first
+        // Create the new resource first
         const newDocRef = await addProvision(dataToSave);
 
-        // Then update all selected resource hubs to include this new provision
+        // Then update all selected resource hubs to include this new resource
         const updateHubPromises = resourceHubs
           .filter((hub) => formData.selectedHubs.includes(hub.id))
           .map((hub) => {
@@ -116,7 +116,7 @@ export default function ProvisionForm({
 
         toast({
           title: "Success",
-          description: "Provision created successfully"
+          description: "Resource created successfully"
         });
       }
       onOpenChange(false);
@@ -124,8 +124,8 @@ export default function ProvisionForm({
       toast({
         title: "Error",
         description: initialData
-          ? "Failed to update provision"
-          : "Failed to create provision",
+          ? "Failed to update resource"
+          : "Failed to create resource",
         variant: "destructive"
       });
     }
@@ -143,7 +143,7 @@ export default function ProvisionForm({
         selectedHubs: newSelectedHubs
       });
 
-      // If editing an existing provision, update both sides of the relationship
+      // If editing an existing resource, update both sides of the relationship
       if (initialData?.id) {
         const hub = resourceHubs.find((h) => h.id === hubId);
         if (hub) {
@@ -229,20 +229,20 @@ export default function ProvisionForm({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Provision" : "New Provision"}
+            {initialData ? "Edit Resource" : "New Resource"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             {/* Name Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Provision Name</label>
+              <label className="text-sm font-medium">Resource Name</label>
               <Input
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Enter provision name"
+                placeholder="Enter resource name"
               />
             </div>
 
@@ -367,7 +367,7 @@ export default function ProvisionForm({
               Cancel
             </Button>
             <Button type="submit">
-              {initialData ? "Update" : "Create"} Provision
+              {initialData ? "Update" : "Create"} Resource
             </Button>
           </div>
         </form>
