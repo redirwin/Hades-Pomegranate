@@ -23,6 +23,15 @@
 # misc
 .DS_Store
 *.pem
+.idea/
+.vscode/
+*.swp
+*.swo
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
 
 # debug
 npm-debug.log*
@@ -39,3 +48,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# firebase
+.firebase/
+*.log
+firebase-debug.log*
+firebase-debug.*.log*
+ui-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
+.idea
+.vscode
+*.sublime-workspace
+*.sublime-project
+
+# Cursor specific files 
+.cursor*
