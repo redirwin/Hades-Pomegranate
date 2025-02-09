@@ -77,7 +77,7 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {resourceHubs.map((hub) => (
           <Card key={hub.id} className="overflow-hidden">
             <CardContent className="p-0">
