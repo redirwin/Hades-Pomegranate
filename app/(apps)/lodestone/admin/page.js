@@ -10,6 +10,7 @@ import ResourceHubs from "./components/resource-hubs";
 import Provisions from "./components/provisions";
 import Settings from "./components/settings";
 import { RarityProvider } from "../context/RarityContext";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function Admin() {
   const router = useRouter();
@@ -110,6 +111,7 @@ export default function Admin() {
           </Button>
         )}
       </div>
+      <Toaster />
     </RarityProvider>
   );
 }
