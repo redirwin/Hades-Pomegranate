@@ -5,6 +5,7 @@ import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LogIn, LayoutDashboard } from "lucide-react";
 
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
@@ -28,7 +29,10 @@ export default function Lodestone() {
       <nav className="w-full flex justify-end mb-8">
         {user ? (
           <Button variant="default" asChild>
-            <Link href="/lodestone/admin">Admin</Link>
+            <Link href="/lodestone/admin">
+              <LayoutDashboard className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
           </Button>
         ) : (
           <Button
@@ -36,7 +40,10 @@ export default function Lodestone() {
             onClick={handleGoogleLogin}
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            <LogIn className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">
+              {loading ? "Logging in..." : "Login"}
+            </span>
           </Button>
         )}
       </nav>

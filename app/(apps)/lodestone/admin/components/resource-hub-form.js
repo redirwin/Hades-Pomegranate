@@ -230,7 +230,7 @@ export default function ResourceHubForm({
             {initialData ? "Edit Resource Hub" : "New Resource Hub"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-4">
             {/* Name Input */}
             <div className="space-y-2">

@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Menu, Plus } from "lucide-react";
+import {
+  Plus,
+  Package,
+  MapPin,
+  Settings as SettingsIcon,
+  Home,
+  LogOut
+} from "lucide-react";
 import ResourceHubs from "./components/resource-hubs";
 import Provisions from "./components/provisions";
 import Settings from "./components/settings";
@@ -17,7 +24,7 @@ import { ProvisionProvider } from "../context/ProvisionContext";
 export default function Admin() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("hubs");
+  const [activeTab, setActiveTab] = useState("provisions");
   const [showHubForm, setShowHubForm] = useState(false);
   const [showProvisionForm, setShowProvisionForm] = useState(false);
 
@@ -48,56 +55,77 @@ export default function Admin() {
         <ProvisionProvider>
           <div className="min-h-screen flex flex-col">
             {/* Header */}
-            <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center justify-between p-4 sm:p-8 max-w-7xl mx-auto w-full">
+                <h1 className="text-xl font-bold">Lodestone Admin</h1>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="default"
+                    onClick={() => router.push("/lodestone")}
+                  >
+                    <Home className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Home</span>
                   </Button>
-                  <h1 className="text-xl font-bold">Lodestone Admin</h1>
+                  <Button onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </Button>
                 </div>
-                <Button onClick={handleLogout}>Logout</Button>
               </div>
             </header>
 
             {/* Main Content */}
             <main className="flex-1">
               <Tabs
-                defaultValue="hubs"
+                defaultValue="provisions"
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <div className="sticky top-[57px] z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <TabsList className="w-full justify-start p-0 h-12">
-                    <TabsTrigger value="provisions" className="flex-1">
-                      🎒 Resources
-                    </TabsTrigger>
-                    <TabsTrigger value="hubs" className="flex-1">
-                      📍 Resource Hubs
-                    </TabsTrigger>
-                    <TabsTrigger value="settings" className="flex-1">
-                      ⚙️ Settings
-                    </TabsTrigger>
-                  </TabsList>
+                <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <div className="sticky top-[57px] z-40 max-w-7xl mx-auto w-full">
+                    <div className="px-4 sm:px-8">
+                      <TabsList className="w-full justify-start p-0 h-12">
+                        <TabsTrigger
+                          value="provisions"
+                          className="flex-1 flex items-center gap-2 ml-2"
+                        >
+                          <Package className="h-4 w-4" />
+                          <span>Resources</span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="hubs"
+                          className="flex-1 flex items-center gap-2"
+                        >
+                          <MapPin className="h-4 w-4" />
+                          <span>Resource Hubs</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="settings" className="w-14">
+                          <SettingsIcon className="h-4 w-4" />
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="p-4">
-                  <TabsContent value="hubs" className="m-0">
-                    <ResourceHubs
-                      isFormOpen={showHubForm}
-                      setIsFormOpen={setShowHubForm}
-                    />
-                  </TabsContent>
-                  <TabsContent value="provisions" className="m-0">
-                    <Provisions
-                      isFormOpen={showProvisionForm}
-                      setIsFormOpen={setShowProvisionForm}
-                    />
-                  </TabsContent>
-                  <TabsContent value="settings" className="m-0">
-                    <Settings />
-                  </TabsContent>
+                <div className="max-w-7xl mx-auto w-full">
+                  <div className="p-4 sm:p-8">
+                    <TabsContent value="hubs" className="m-0">
+                      <ResourceHubs
+                        isFormOpen={showHubForm}
+                        setIsFormOpen={setShowHubForm}
+                      />
+                    </TabsContent>
+                    <TabsContent value="provisions" className="m-0">
+                      <Provisions
+                        isFormOpen={showProvisionForm}
+                        setIsFormOpen={setShowProvisionForm}
+                      />
+                    </TabsContent>
+                    <TabsContent value="settings" className="m-0">
+                      <Settings />
+                    </TabsContent>
+                  </div>
                 </div>
               </Tabs>
             </main>
