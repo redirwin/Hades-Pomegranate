@@ -7,9 +7,11 @@ import {
   GoogleAuthProvider,
   signOut
 } from "firebase/auth";
-import { auth } from "../firebase/config";
+import { auth } from "@/lib/firebase/config";
 
 const AuthContext = createContext({});
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -59,5 +61,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

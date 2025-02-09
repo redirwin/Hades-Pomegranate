@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { initFirebaseAdminApp } from "@/app/firebase/admin-config";
+import { initFirebaseAdminApp } from "@/lib/firebase/admin-config";
 import admin from "firebase-admin";
 
 export async function POST(request) {

@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "./context/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,18 +12,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Loadstone",
-  description: "Easily create inventory lists for RPGs"
+  title: "Hades Pomegranate",
+  description: "Digital Tools for Tabletop Gaming",
+  openGraph: {
+    title: "Hades Pomegranate",
+    description: "Digital Tools for Tabletop Gaming",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hades Pomegranate",
+    description: "Digital Tools for Tabletop Gaming"
+  }
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        {children}
       </body>
     </html>
   );
