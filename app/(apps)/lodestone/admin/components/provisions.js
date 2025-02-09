@@ -4,40 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import ProvisionForm from "./provision-form";
-import { useRarity } from "../../context/RarityContext";
+import { useProvisions } from "../../context/ProvisionContext";
+import { deleteImage } from "../../firebase/storage";
 
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
-  const { rarityOptions } = useRarity();
+  const { provisions, deleteProvision, loading, error } = useProvisions();
   const [editingProvision, setEditingProvision] = useState(null);
-
-  // Temporary mock data
-  const provisions = [
-    {
-      id: 1,
-      name: "Health Potion",
-      image: "/placeholder.jpg",
-      rarity: "Common",
-      basePrice: 50,
-      selectedHubs: [1, 2]
-    },
-    {
-      id: 2,
-      name: "Ancient Scroll",
-      image: "/placeholder.jpg",
-      rarity: "Rare",
-      basePrice: 200,
-      selectedHubs: [2]
-    },
-    {
-      id: 3,
-      name: "Legendary Sword",
-      image: "/placeholder.jpg",
-      rarity: "Legendary",
-      basePrice: 1000,
-      selectedHubs: [1, 2, 3]
-    }
-  ];
+  const { toast } = useToast();
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -56,10 +31,38 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     setIsFormOpen(true);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const provision = provisions.find((p) => p.id === id);
+      if (provision?.imageUrl) {
+        await deleteImage(provision.imageUrl);
+      }
+      await deleteProvision(id);
+      toast({
+        title: "Success",
+        description: "Provision deleted successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete provision",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingProvision(null);
   };
+
+  if (loading) {
+    return <div className="text-muted-foreground">Loading provisions...</div>;
+  }
+
+  if (error) {
+    return <div className="text-destructive">Error loading provisions</div>;
+  }
 
   return (
     <>
@@ -68,7 +71,17 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
           <Card key={provision.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="flex items-center gap-4 p-4">
-                <div className="h-16 w-16 rounded-md bg-muted flex-shrink-0" />
+                <div className="h-16 w-16 rounded-md bg-muted flex-shrink-0 overflow-hidden">
+                  {provision.imageUrl ? (
+                    <img
+                      src={provision.imageUrl}
+                      alt={provision.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted" />
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold truncate">{provision.name}</h3>
                   <div className="flex items-center gap-2 text-sm">
@@ -88,7 +101,11 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDelete(provision.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

@@ -15,53 +15,174 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { useProvisions } from "../../context/ProvisionContext";
 import { useRarity } from "../../context/RarityContext";
+import { useResourceHubs } from "../../context/ResourceHubContext";
+import { uploadImage, deleteImage } from "../../firebase/storage";
+import { X } from "lucide-react";
 
 export default function ProvisionForm({
   open,
   onOpenChange,
   initialData = null
 }) {
+  const { addProvision, updateProvision } = useProvisions();
+  const { resourceHubs, updateResourceHub } = useResourceHubs();
   const { rarityOptions } = useRarity();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     basePrice: 0,
     rarity: "Common",
-    selectedHubs: []
+    selectedHubs: [],
+    imageUrl: ""
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
-  // Update form data when initialData changes
   useEffect(() => {
     if (initialData) {
       setFormData({
         name: initialData.name,
         basePrice: initialData.basePrice,
         rarity: initialData.rarity,
-        selectedHubs: initialData.selectedHubs
+        selectedHubs: initialData.selectedHubs || [],
+        imageUrl: initialData.imageUrl || ""
       });
+      setImagePreview(initialData.imageUrl || null);
     } else {
       setFormData({
         name: "",
         basePrice: 0,
         rarity: "Common",
-        selectedHubs: []
+        selectedHubs: [],
+        imageUrl: ""
       });
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [initialData]);
 
-  // Temporary mock data for hubs
-  const availableHubs = [
-    { id: 1, name: "Forest Loot" },
-    { id: 2, name: "Dungeon Treasures" },
-    { id: 3, name: "City Market" }
-  ];
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Handle form submission
-    onOpenChange(false);
+    try {
+      let imageUrl = formData.imageUrl;
+
+      if (imageFile) {
+        const path = `provisions/${Date.now()}-${imageFile.name}`;
+        imageUrl = await uploadImage(imageFile, path);
+      }
+
+      const dataToSave = {
+        ...formData,
+        imageUrl
+      };
+
+      if (initialData) {
+        await updateProvision(initialData.id, dataToSave);
+        toast({
+          title: "Success",
+          description: "Provision updated successfully"
+        });
+      } else {
+        await addProvision(dataToSave);
+        toast({
+          title: "Success",
+          description: "Provision created successfully"
+        });
+      }
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: initialData
+          ? "Failed to update provision"
+          : "Failed to create provision",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleHubToggle = async (hubId, checked) => {
+    const newSelectedHubs = checked
+      ? [...formData.selectedHubs, hubId]
+      : formData.selectedHubs.filter((id) => id !== hubId);
+
+    // Update local state
+    setFormData({
+      ...formData,
+      selectedHubs: newSelectedHubs
+    });
+
+    // Update the hub's selectedProvisions array if we're editing an existing provision
+    if (initialData?.id) {
+      const hub = resourceHubs.find((h) => h.id === hubId);
+      if (hub) {
+        const newSelectedProvisions = checked
+          ? [...(hub.selectedProvisions || []), initialData.id]
+          : (hub.selectedProvisions || []).filter(
+              (id) => id !== initialData.id
+            );
+
+        await updateResourceHub(hubId, {
+          ...hub,
+          selectedProvisions: newSelectedProvisions
+        });
+      }
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (imagePreview && !formData.imageUrl) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageDelete = async () => {
+    try {
+      if (formData.imageUrl) {
+        await deleteImage(formData.imageUrl);
+      } else if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+
+      setFormData({
+        ...formData,
+        imageUrl: ""
+      });
+      setImagePreview(null);
+      setImageFile(null);
+
+      if (initialData?.id) {
+        await updateProvision(initialData.id, {
+          ...formData,
+          imageUrl: ""
+        });
+        toast({
+          title: "Success",
+          description: "Image removed successfully"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove image",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -89,9 +210,40 @@ export default function ProvisionForm({
             {/* Image Upload */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Image</label>
-              <div className="border-2 border-dashed rounded-lg p-4 text-center">
-                <Button type="button" variant="outline" className="w-full">
-                  Upload Image
+              <div className="border-2 border-dashed rounded-lg p-4 space-y-4">
+                {imagePreview && (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden group">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="object-cover w-full h-full"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={handleImageDelete}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <input
+                  id="image-upload"
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {imagePreview ? "Change Image" : "Upload Image"}
                 </Button>
               </div>
             </div>
@@ -146,21 +298,14 @@ export default function ProvisionForm({
                 Available in Resource Hubs
               </label>
               <div className="border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
-                {availableHubs.map((hub) => (
+                {resourceHubs.map((hub) => (
                   <div key={hub.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`hub-${hub.id}`}
                       checked={formData.selectedHubs.includes(hub.id)}
-                      onCheckedChange={(checked) => {
-                        setFormData({
-                          ...formData,
-                          selectedHubs: checked
-                            ? [...formData.selectedHubs, hub.id]
-                            : formData.selectedHubs.filter(
-                                (id) => id !== hub.id
-                              )
-                        });
-                      }}
+                      onCheckedChange={(checked) =>
+                        handleHubToggle(hub.id, checked)
+                      }
                     />
                     <label
                       htmlFor={`hub-${hub.id}`}
