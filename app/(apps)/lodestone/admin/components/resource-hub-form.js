@@ -32,8 +32,7 @@ export default function ResourceHubForm({
     lowerPriceModifier: 20,
     minProvisions: 1,
     maxProvisions: 5,
-    selectedProvisions: [],
-    provisionCount: 0
+    selectedProvisions: []
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -54,8 +53,7 @@ export default function ResourceHubForm({
         lowerPriceModifier: 20,
         minProvisions: 1,
         maxProvisions: 5,
-        selectedProvisions: [],
-        provisionCount: 0
+        selectedProvisions: []
       });
       setImagePreview(null);
       setImageFile(null);

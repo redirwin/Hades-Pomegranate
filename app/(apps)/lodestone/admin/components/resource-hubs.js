@@ -75,10 +75,9 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold truncate">{hub.name}</h3>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{hub.provisionCount} provisions</span>
-                    <span>•</span>
                     <span>
-                      {hub.minProvisions}-{hub.maxProvisions} per refresh
+                      {hub.minProvisions}-{hub.maxProvisions} provisions per
+                      refresh
                     </span>
                   </div>
                 </div>
