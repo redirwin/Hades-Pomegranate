@@ -11,17 +11,47 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useSettings } from "../../context/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 export default function Settings() {
-  const { settings, updateSettings } = useSettings();
+  const { settings, toggleDeletionConfirmation } = useSettings();
   const { toast } = useToast();
+  const [remainingMinutes, setRemainingMinutes] = useState(null);
+
+  // Calculate and update remaining time
+  useEffect(() => {
+    if (
+      !settings.showDeletionConfirmation &&
+      settings.deletionConfirmationDisabledAt
+    ) {
+      const updateRemainingTime = () => {
+        const disabledTime = new Date(
+          settings.deletionConfirmationDisabledAt
+        ).getTime();
+        const currentTime = new Date().getTime();
+        const elapsedMs = currentTime - disabledTime;
+        const remainingMs = Math.max(5 * 60 * 1000 - elapsedMs, 0);
+        const minutes = Math.floor(remainingMs / (60 * 1000));
+        const seconds = Math.floor((remainingMs % (60 * 1000)) / 1000);
+        setRemainingMinutes({ minutes, seconds });
+      };
+
+      // Update immediately and then every second
+      updateRemainingTime();
+      const intervalId = setInterval(updateRemainingTime, 1000);
+
+      return () => clearInterval(intervalId);
+    } else {
+      setRemainingMinutes(null);
+    }
+  }, [
+    settings.showDeletionConfirmation,
+    settings.deletionConfirmationDisabledAt
+  ]);
 
   const handleToggleConfirmation = async (checked) => {
     try {
-      await updateSettings({
-        ...settings,
-        showDeletionConfirmation: checked
-      });
+      await toggleDeletionConfirmation(checked);
       toast({
         title: "Success",
         description: "Settings updated successfully"
@@ -50,7 +80,12 @@ export default function Settings() {
             <Accordion type="single" collapsible>
               <AccordionItem value="rarity-settings" className="border-none">
                 <AccordionTrigger className="py-0 hover:no-underline">
-                  Rarity Settings
+                  <div className="space-y-0.5 text-left">
+                    <h2 className="text-lg font-medium">Rarity Settings</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Configure spawn weights for each rarity level
+                    </p>
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pt-4">
@@ -67,7 +102,17 @@ export default function Settings() {
               <div className="space-y-0.5">
                 <h2 className="text-lg font-medium">Deletion Confirmation</h2>
                 <p className="text-sm text-muted-foreground">
-                  Show a confirmation dialog when deleting items
+                  {settings.showDeletionConfirmation
+                    ? "Show a confirmation dialog when deleting items"
+                    : remainingMinutes
+                    ? `Confirmation will be re-enabled in ${
+                        remainingMinutes.minutes
+                      } ${
+                        remainingMinutes.minutes === 1 ? "minute" : "minutes"
+                      } and ${remainingMinutes.seconds} ${
+                        remainingMinutes.seconds === 1 ? "second" : "seconds"
+                      }.`
+                    : "Delete confirmation disabled"}
                 </p>
               </div>
               <Switch
