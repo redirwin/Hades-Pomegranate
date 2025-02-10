@@ -82,29 +82,36 @@ export default function Admin() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <div className="sticky top-[57px] z-40 max-w-7xl mx-auto w-full">
-                    <div className="px-4 sm:px-8">
-                      <TabsList className="w-full justify-start p-0 h-12">
+                <div className="sticky top-[57px] z-40 max-w-7xl mx-auto w-full">
+                  <div className="px-4 sm:px-8">
+                    <TabsList className="w-full p-0 h-14 flex items-center gap-1 sm:gap-2 lg:justify-between bg-transparent">
+                      <div className="flex gap-1 sm:gap-2 flex-1 lg:flex-none lg:w-[calc((100vw-4rem-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
                         <TabsTrigger
                           value="provisions"
-                          className="flex-1 flex items-center gap-2 ml-2"
+                          className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
-                          <Package className="h-4 w-4" />
-                          <span>Resources</span>
+                          <Package className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden min-[360px]:inline truncate">
+                            Resources
+                          </span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="hubs"
-                          className="flex-1 flex items-center gap-2"
+                          className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
-                          <MapPin className="h-4 w-4" />
-                          <span>Resource Hubs</span>
+                          <MapPin className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden min-[360px]:inline truncate">
+                            Resource Hubs
+                          </span>
                         </TabsTrigger>
-                        <TabsTrigger value="settings" className="w-14">
-                          <SettingsIcon className="h-4 w-4" />
-                        </TabsTrigger>
-                      </TabsList>
-                    </div>
+                      </div>
+                      <TabsTrigger
+                        value="settings"
+                        className="w-10 sm:w-14 flex-shrink-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      >
+                        <SettingsIcon className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TabsList>
                   </div>
                 </div>
 

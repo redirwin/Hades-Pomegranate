@@ -26,7 +26,7 @@ export default function Lodestone() {
 
   return (
     <div className="min-h-screen flex flex-col p-4 sm:p-8">
-      <nav className="w-full flex justify-end mb-8">
+      <nav className="max-w-7xl mx-auto w-full flex justify-end mb-8">
         {user ? (
           <Button variant="default" asChild>
             <Link href="/lodestone/admin">
@@ -47,7 +47,7 @@ export default function Lodestone() {
           </Button>
         )}
       </nav>
-      <main className="flex-1 flex flex-col items-center justify-center">
+      <main className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
           Welcome to Lodestone
         </h1>
