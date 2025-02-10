@@ -54,11 +54,14 @@ export default function Lodestone() {
       </header>
       <main className="flex-1">
         <div className="flex flex-col items-center justify-center p-4 sm:p-8 max-w-7xl mx-auto w-full h-full">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Welcome to Lodestone
           </h1>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground/90 mb-4">
+            An RPG Resource Generator
+          </h2>
           <p className="text-lg sm:text-xl text-foreground/80">
-            Create and manage inventory lists for your RPG characters.
+            Create and manage inventory lists for your RPG encounters.
           </p>
         </div>
       </main>
