@@ -14,12 +14,6 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { usePublicResourceHubs } from "./hooks/usePublicResourceHubs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Lodestone() {
@@ -28,7 +22,6 @@ export default function Lodestone() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedHub, setSelectedHub] = useState("");
   const [generatedList, setGeneratedList] = useState(null);
-  const [showResults, setShowResults] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -63,7 +56,6 @@ export default function Lodestone() {
 
       const data = await response.json();
       setGeneratedList(data);
-      setShowResults(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -104,18 +96,18 @@ export default function Lodestone() {
         </div>
       </header>
       <main className="flex-1 container max-w-7xl mx-auto p-4 sm:p-8">
-        <div className="flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
+        <div className="flex flex-col items-center justify-center max-w-2xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Welcome to Lodestone
           </h1>
           <h2 className="text-xl sm:text-2xl font-bold text-foreground/90 mb-4">
             An RPG Resource Generator
           </h2>
-          <p className="text-lg sm:text-xl text-foreground/80 mb-8">
+          <p className="text-lg sm:text-xl text-foreground/80 mb-8 text-center">
             Create and manage inventory lists for your RPG encounters.
           </p>
 
-          <div className="flex gap-4 w-full max-w-xl">
+          <div className="flex gap-4 w-full max-w-xl mb-8">
             <Select value={selectedHub} onValueChange={setSelectedHub}>
               <SelectTrigger className="flex-1" disabled={loading}>
                 <SelectValue
@@ -152,35 +144,37 @@ export default function Lodestone() {
               </span>
             </Button>
           </div>
+
+          {generatedList && (
+            <div className="w-full max-w-xl border rounded-lg p-6 space-y-4">
+              <h3 className="text-xl font-semibold mb-4">
+                {generatedList.hubName} - Generated List
+              </h3>
+              <div className="space-y-4">
+                {generatedList.items.map((item, index) => (
+                  <div
+                    key={`${item.id}-${index}`}
+                    className="flex justify-between items-center"
+                  >
+                    <div>
+                      <span className="font-medium">
+                        {item.count} {item.name}
+                        {item.count > 1 ? "s" : ""}
+                      </span>
+                      <p className="text-sm text-muted-foreground">
+                        {item.rarity}
+                      </p>
+                    </div>
+                    <span className="text-primary font-medium">
+                      {item.price} gp each
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
-
-      <Dialog open={showResults} onOpenChange={setShowResults}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{generatedList?.hubName} - Generated List</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {generatedList?.items.map((item, index) => (
-              <div
-                key={`${item.id}-${index}`}
-                className="flex justify-between items-center"
-              >
-                <div>
-                  <span className="font-medium">
-                    {item.count} {item.name}
-                    {item.count > 1 ? "s" : ""}
-                  </span>
-                  <p className="text-sm text-muted-foreground">{item.rarity}</p>
-                </div>
-                <span className="text-primary font-medium">
-                  {item.price} gp each
-                </span>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
