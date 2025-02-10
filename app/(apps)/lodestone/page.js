@@ -5,22 +5,32 @@ import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LogIn, LayoutDashboard } from "lucide-react";
+import { LogIn, LayoutDashboard, Wand2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { usePublicResourceHubs } from "./hooks/usePublicResourceHubs";
 
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { resourceHubs, loading, error } = usePublicResourceHubs();
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedHub, setSelectedHub] = useState("");
   const router = useRouter();
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setIsLoading(true);
     try {
       await googleLogin();
       router.push("/lodestone/admin");
     } catch (error) {
       console.error("Error logging in with Google:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -41,11 +51,11 @@ export default function Lodestone() {
               <Button
                 variant="default"
                 onClick={handleGoogleLogin}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <LogIn className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">
-                  {loading ? "Logging in..." : "Login"}
+                  {isLoading ? "Logging in..." : "Login"}
                 </span>
               </Button>
             )}
@@ -60,9 +70,42 @@ export default function Lodestone() {
           <h2 className="text-xl sm:text-2xl font-bold text-foreground/90 mb-4">
             An RPG Resource Generator
           </h2>
-          <p className="text-lg sm:text-xl text-foreground/80">
+          <p className="text-lg sm:text-xl text-foreground/80 mb-8">
             Create and manage inventory lists for your RPG encounters.
           </p>
+
+          <div className="flex gap-4 w-full max-w-xl">
+            <Select value={selectedHub} onValueChange={setSelectedHub}>
+              <SelectTrigger className="flex-1" disabled={loading}>
+                <SelectValue
+                  placeholder={
+                    loading ? "Loading hubs..." : "Select a resource hub"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {error ? (
+                  <SelectItem value="error" disabled>
+                    Error loading hubs: {error.message}
+                  </SelectItem>
+                ) : resourceHubs.length === 0 ? (
+                  <SelectItem value="empty" disabled>
+                    No resource hubs available
+                  </SelectItem>
+                ) : (
+                  resourceHubs.map((hub) => (
+                    <SelectItem key={hub.id} value={hub.id}>
+                      {hub.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <Button disabled={!selectedHub}>
+              <Wand2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Generate List</span>
+            </Button>
+          </div>
         </div>
       </main>
     </div>

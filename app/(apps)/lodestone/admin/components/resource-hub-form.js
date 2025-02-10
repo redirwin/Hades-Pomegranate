@@ -25,40 +25,41 @@ export default function ResourceHubForm({
   const { addResourceHub, updateResourceHub } = useResourceHubs();
   const { provisions, updateProvision } = useProvisions();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    imageUrl: "",
-    upperPriceModifier: 20,
-    lowerPriceModifier: 20,
-    minProvisions: 1,
-    maxProvisions: 5,
-    selectedProvisions: []
-  });
+  const [formData, setFormData] = useState(
+    initialData || {
+      name: "",
+      description: "",
+      minProvisions: 1,
+      maxProvisions: 5,
+      selectedProvisions: [],
+      imageUrl: "",
+      imageFile: null
+    }
+  );
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Reset form when dialog closes or when initialData changes
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...initialData,
-        selectedProvisions: initialData.selectedProvisions || []
-      });
-      setImagePreview(initialData.imageUrl || null);
-    } else {
-      setFormData({
-        name: "",
-        imageUrl: "",
-        upperPriceModifier: 20,
-        lowerPriceModifier: 20,
-        minProvisions: 1,
-        maxProvisions: 5,
-        selectedProvisions: []
-      });
-      setImagePreview(null);
-      setImageFile(null);
+    if (!open) {
+      // Reset form to initial state when dialog closes
+      setFormData(
+        initialData || {
+          name: "",
+          description: "",
+          minProvisions: 1,
+          maxProvisions: 5,
+          selectedProvisions: [],
+          imageUrl: "",
+          imageFile: null
+        }
+      );
+    } else if (initialData) {
+      // Set form data when editing
+      setFormData(initialData);
     }
-  }, [initialData]);
+  }, [open, initialData]);
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];

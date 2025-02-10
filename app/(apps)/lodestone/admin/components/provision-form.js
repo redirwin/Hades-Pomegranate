@@ -33,53 +33,48 @@ export default function ProvisionForm({
   const { resourceHubs, updateResourceHub } = useResourceHubs();
   const { rarityOptions } = useRarity();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    basePrice: 0,
-    rarity: "Common",
-    selectedHubs: [],
-    imageUrl: ""
-  });
-  const [imageFile, setImageFile] = useState(null);
+  const [formData, setFormData] = useState(
+    initialData || {
+      name: "",
+      basePrice: 0,
+      rarity: "Common",
+      selectedHubs: [],
+      imageUrl: "",
+      imageFile: null
+    }
+  );
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name,
-        basePrice: initialData.basePrice,
-        rarity: initialData.rarity,
-        selectedHubs: initialData.selectedHubs || [],
-        imageUrl: initialData.imageUrl || ""
-      });
+    if (!open) {
+      setFormData(
+        initialData || {
+          name: "",
+          basePrice: 0,
+          rarity: "Common",
+          selectedHubs: [],
+          imageUrl: "",
+          imageFile: null
+        }
+      );
+    } else if (initialData) {
+      setFormData(initialData);
       setImagePreview(initialData.imageUrl || null);
-    } else {
-      setFormData({
-        name: "",
-        basePrice: 0,
-        rarity: "Common",
-        selectedHubs: [],
-        imageUrl: ""
-      });
-      setImagePreview(null);
-      setImageFile(null);
     }
-  }, [initialData]);
+  }, [open, initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       let imageUrl = formData.imageUrl;
 
-      if (imageFile) {
-        // If updating and there's an existing image, delete it first
+      if (formData.imageFile) {
         if (initialData?.imageUrl) {
           await deleteImage(initialData.imageUrl);
         }
-        // Upload the new image
-        const path = `provisions/${Date.now()}-${imageFile.name}`;
-        imageUrl = await uploadImage(imageFile, path);
+        const path = `provisions/${Date.now()}-${formData.imageFile.name}`;
+        imageUrl = await uploadImage(formData.imageFile, path);
       }
 
       const dataToSave = {
@@ -94,10 +89,8 @@ export default function ProvisionForm({
           description: "Resource updated successfully"
         });
       } else {
-        // Create the new resource first
         const newDocRef = await addProvision(dataToSave);
 
-        // Then update all selected resource hubs to include this new resource
         const updateHubPromises = resourceHubs
           .filter((hub) => formData.selectedHubs.includes(hub.id))
           .map((hub) => {
@@ -111,7 +104,6 @@ export default function ProvisionForm({
             });
           });
 
-        // Wait for all hub updates to complete
         await Promise.all(updateHubPromises);
 
         toast({
@@ -137,13 +129,11 @@ export default function ProvisionForm({
         ? [...formData.selectedHubs, hubId]
         : formData.selectedHubs.filter((id) => id !== hubId);
 
-      // Update local state
       setFormData({
         ...formData,
         selectedHubs: newSelectedHubs
       });
 
-      // If editing an existing resource, update both sides of the relationship
       if (initialData?.id) {
         const hub = resourceHubs.find((h) => h.id === hubId);
         if (hub) {
@@ -153,7 +143,6 @@ export default function ProvisionForm({
                 (id) => id !== initialData.id
               );
 
-          // Update both documents in Firestore
           await Promise.all([
             updateResourceHub(hubId, {
               ...hub,
@@ -181,7 +170,10 @@ export default function ProvisionForm({
       if (imagePreview && !formData.imageUrl) {
         URL.revokeObjectURL(imagePreview);
       }
-      setImageFile(file);
+      setFormData({
+        ...formData,
+        imageFile: file
+      });
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -200,10 +192,10 @@ export default function ProvisionForm({
 
       setFormData({
         ...formData,
-        imageUrl: ""
+        imageUrl: "",
+        imageFile: null
       });
       setImagePreview(null);
-      setImageFile(null);
 
       if (initialData?.id) {
         await updateProvision(initialData.id, {
