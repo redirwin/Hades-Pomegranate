@@ -33,7 +33,9 @@ export default function ResourceHubForm({
       maxProvisions: 5,
       selectedProvisions: [],
       imageUrl: "",
-      imageFile: null
+      imageFile: null,
+      upperPriceModifier: 0,
+      lowerPriceModifier: 0
     }
   );
   const [imageFile, setImageFile] = useState(null);
@@ -52,7 +54,9 @@ export default function ResourceHubForm({
           maxProvisions: 5,
           selectedProvisions: [],
           imageUrl: "",
-          imageFile: null
+          imageFile: null,
+          upperPriceModifier: 0,
+          lowerPriceModifier: 0
         }
       );
     } else if (initialData) {
@@ -115,6 +119,31 @@ export default function ResourceHubForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Hub name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate min/max provisions
+    if (
+      formData.minProvisions < 0 ||
+      formData.maxProvisions < formData.minProvisions
+    ) {
+      toast({
+        title: "Error",
+        description:
+          "Invalid provision range. Maximum must be greater than or equal to minimum.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       let imageUrl = formData.imageUrl;
 
@@ -223,6 +252,11 @@ export default function ResourceHubForm({
     }
   };
 
+  // Sort the provisions alphabetically before rendering
+  const sortedProvisions = provisions.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -231,7 +265,7 @@ export default function ResourceHubForm({
             {initialData ? "Edit Resource Hub" : "New Resource Hub"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-4">
             {/* Name Input */}
             <div className="space-y-2">
@@ -330,14 +364,15 @@ export default function ResourceHubForm({
                 </label>
                 <Input
                   type="number"
-                  min={1}
+                  min="0"
                   value={formData.minProvisions}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      minProvisions: parseInt(e.target.value) || 1
+                      minProvisions: parseInt(e.target.value)
                     })
                   }
+                  placeholder="Enter minimum provisions"
                 />
               </div>
 
@@ -347,15 +382,15 @@ export default function ResourceHubForm({
                 </label>
                 <Input
                   type="number"
-                  min={formData.minProvisions}
+                  min="0"
                   value={formData.maxProvisions}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      maxProvisions:
-                        parseInt(e.target.value) || formData.minProvisions
+                      maxProvisions: parseInt(e.target.value)
                     })
                   }
+                  placeholder="Enter maximum provisions"
                 />
               </div>
             </div>
@@ -366,7 +401,7 @@ export default function ResourceHubForm({
                 Available Provisions
               </label>
               <div className="border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
-                {provisions.map((provision) => (
+                {sortedProvisions.map((provision) => (
                   <div
                     key={provision.id}
                     className="flex items-center space-x-2"

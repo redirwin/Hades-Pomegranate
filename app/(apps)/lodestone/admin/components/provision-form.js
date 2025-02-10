@@ -37,7 +37,7 @@ export default function ProvisionForm({
     initialData || {
       name: "",
       basePrice: 0,
-      rarity: "Common",
+      rarity: "",
       selectedHubs: [],
       imageUrl: "",
       imageFile: null
@@ -52,7 +52,7 @@ export default function ProvisionForm({
         initialData || {
           name: "",
           basePrice: 0,
-          rarity: "Common",
+          rarity: "",
           selectedHubs: [],
           imageUrl: "",
           imageFile: null
@@ -66,6 +66,35 @@ export default function ProvisionForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Resource name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.basePrice === undefined || formData.basePrice < 0) {
+      toast({
+        title: "Error",
+        description: "Base price is required and must be non-negative",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.rarity) {
+      toast({
+        title: "Error",
+        description: "Rarity is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       let imageUrl = formData.imageUrl;
 
@@ -216,6 +245,8 @@ export default function ProvisionForm({
     }
   };
 
+  const sortedHubs = resourceHubs.sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -224,7 +255,7 @@ export default function ProvisionForm({
             {initialData ? "Edit Resource" : "New Resource"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div className="space-y-4">
             {/* Name Input */}
             <div className="space-y-2">
@@ -284,15 +315,16 @@ export default function ProvisionForm({
               <label className="text-sm font-medium">Base Price (Gold)</label>
               <Input
                 type="number"
-                min={0}
-                step={0.01}
+                min="0"
+                step="0.01"
                 value={formData.basePrice}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    basePrice: parseFloat(e.target.value) || 0
+                    basePrice: parseFloat(e.target.value)
                   })
                 }
+                placeholder="Enter base price"
               />
             </div>
 
@@ -308,7 +340,7 @@ export default function ProvisionForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select rarity" />
+                  <SelectValue placeholder="Choose rarity" />
                 </SelectTrigger>
                 <SelectContent>
                   {rarityOptions.map((option) => (
@@ -329,7 +361,7 @@ export default function ProvisionForm({
                 Available in Resource Hubs
               </label>
               <div className="border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
-                {resourceHubs.map((hub) => (
+                {sortedHubs.map((hub) => (
                   <div key={hub.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`hub-${hub.id}`}

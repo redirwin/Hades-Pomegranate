@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { useToast } from "@/hooks/use-toast";
 
 const SettingsContext = createContext();
 
@@ -13,6 +14,7 @@ export function SettingsProvider({ children }) {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast } = useToast();
 
   // Monitor for auto re-enable
   useEffect(() => {
@@ -21,18 +23,36 @@ export function SettingsProvider({ children }) {
       settings.deletionConfirmationDisabledAt
     ) {
       const timeoutId = setTimeout(async () => {
-        await updateSettings({
-          ...settings,
-          showDeletionConfirmation: true,
-          deletionConfirmationDisabledAt: null
-        });
-      }, 5 * 60 * 1000); // 5 minutes in milliseconds
+        try {
+          const docRef = doc(db, "settings", "general");
+          const newSettings = {
+            ...settings,
+            showDeletionConfirmation: true,
+            deletionConfirmationDisabledAt: null
+          };
+
+          // Update Firestore
+          await setDoc(docRef, newSettings);
+
+          // Explicitly update local state
+          setSettings(newSettings);
+
+          // Show a toast notification
+          toast({
+            title: "Settings Updated",
+            description: "Delete confirmation has been automatically re-enabled"
+          });
+        } catch (error) {
+          console.error("Failed to re-enable deletion confirmation:", error);
+        }
+      }, 5 * 60 * 1000); // 5 minutes
 
       return () => clearTimeout(timeoutId);
     }
   }, [
     settings.showDeletionConfirmation,
-    settings.deletionConfirmationDisabledAt
+    settings.deletionConfirmationDisabledAt,
+    toast
   ]);
 
   useEffect(() => {
