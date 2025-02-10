@@ -14,13 +14,23 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { usePublicResourceHubs } from "./hooks/usePublicResourceHubs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
   const { resourceHubs, loading, error } = usePublicResourceHubs();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedHub, setSelectedHub] = useState("");
+  const [generatedList, setGeneratedList] = useState(null);
+  const [showResults, setShowResults] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -29,6 +39,37 @@ export default function Lodestone() {
       router.push("/lodestone/admin");
     } catch (error) {
       console.error("Error logging in with Google:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedHub) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/lodestone/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ hubId: selectedHub })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate list");
+      }
+
+      const data = await response.json();
+      setGeneratedList(data);
+      setShowResults(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate list",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +103,8 @@ export default function Lodestone() {
           </nav>
         </div>
       </header>
-      <main className="flex-1">
-        <div className="flex flex-col items-center justify-center p-4 sm:p-8 max-w-7xl mx-auto w-full h-full">
+      <main className="flex-1 container max-w-7xl mx-auto p-4 sm:p-8">
+        <div className="flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Welcome to Lodestone
           </h1>
@@ -101,13 +142,45 @@ export default function Lodestone() {
                 )}
               </SelectContent>
             </Select>
-            <Button disabled={!selectedHub}>
+            <Button
+              disabled={!selectedHub || isLoading}
+              onClick={handleGenerate}
+            >
               <Wand2 className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Generate List</span>
+              <span className="hidden sm:inline">
+                {isLoading ? "Generating..." : "Generate List"}
+              </span>
             </Button>
           </div>
         </div>
       </main>
+
+      <Dialog open={showResults} onOpenChange={setShowResults}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{generatedList?.hubName} - Generated List</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {generatedList?.items.map((item, index) => (
+              <div
+                key={`${item.id}-${index}`}
+                className="flex justify-between items-center"
+              >
+                <div>
+                  <span className="font-medium">
+                    {item.count} {item.name}
+                    {item.count > 1 ? "s" : ""}
+                  </span>
+                  <p className="text-sm text-muted-foreground">{item.rarity}</p>
+                </div>
+                <span className="text-primary font-medium">
+                  {item.price} gp each
+                </span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
