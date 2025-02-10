@@ -21,6 +21,18 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
+const RARITY_ORDER = {
+  Junk: 0,
+  Common: 1,
+  Uncommon: 2,
+  Rare: 3,
+  "Very Rare": 4,
+  Legendary: 5,
+  Artifact: 6,
+  Wondrous: 7,
+  Varies: 8
+};
+
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { provisions, deleteProvision, loading, error } = useProvisions();
   const [editingProvision, setEditingProvision] = useState(null);
@@ -33,6 +45,7 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
   });
   const { settings } = useSettings();
   const [sortOrder, setSortOrder] = useState("alphabetical");
+  const [rarityFilter, setRarityFilter] = useState("all");
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -109,16 +122,24 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const filteredProvisions = provisions
     .filter(
       (provision) =>
-        provision.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        provision.rarity.toLowerCase().includes(searchQuery.toLowerCase())
+        (rarityFilter === "all" || provision.rarity === rarityFilter) &&
+        (provision.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          provision.rarity.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     .sort((a, b) => {
       if (sortOrder === "alphabetical") {
         return a.name.localeCompare(b.name);
       } else if (sortOrder === "newest") {
         return (b.createdAt || 0) - (a.createdAt || 0);
-      } else {
+      } else if (sortOrder === "oldest") {
         return (a.createdAt || 0) - (b.createdAt || 0);
+      } else if (sortOrder === "rarity") {
+        // First sort by rarity
+        const rarityDiff =
+          (RARITY_ORDER[a.rarity] || 0) - (RARITY_ORDER[b.rarity] || 0);
+        if (rarityDiff !== 0) return rarityDiff;
+        // Then sort alphabetically within same rarity
+        return a.name.localeCompare(b.name);
       }
     });
 
@@ -132,23 +153,53 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
-      <div className="flex gap-4 mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
-        <SearchInput
-          placeholder="Search resources..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
-        <Select value={sortOrder} onValueChange={setSortOrder}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="alphabetical">Alphabetical</SelectItem>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+        <div className="w-full lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
+          <SearchInput
+            placeholder="Search resources..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <div className="flex gap-4 w-full lg:w-auto">
+          <Select
+            value={rarityFilter}
+            onValueChange={setRarityFilter}
+            className="flex-1 lg:flex-none"
+          >
+            <SelectTrigger className="w-full lg:w-[180px]">
+              <SelectValue placeholder="Filter by rarity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Rarities</SelectItem>
+              <SelectItem value="Junk">Junk</SelectItem>
+              <SelectItem value="Common">Common</SelectItem>
+              <SelectItem value="Uncommon">Uncommon</SelectItem>
+              <SelectItem value="Rare">Rare</SelectItem>
+              <SelectItem value="Very Rare">Very Rare</SelectItem>
+              <SelectItem value="Legendary">Legendary</SelectItem>
+              <SelectItem value="Artifact">Artifact</SelectItem>
+              <SelectItem value="Wondrous">Wondrous</SelectItem>
+              <SelectItem value="Varies">Varies</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={sortOrder}
+            onValueChange={setSortOrder}
+            className="flex-1 lg:flex-none"
+          >
+            <SelectTrigger className="w-full lg:w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alphabetical">Alphabetical</SelectItem>
+              <SelectItem value="rarity">By Rarity</SelectItem>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProvisions.map((provision) => (
