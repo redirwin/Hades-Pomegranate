@@ -37,6 +37,28 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 
+const RARITY_ORDER = {
+  Junk: 0,
+  Common: 1,
+  Uncommon: 2,
+  Rare: 3,
+  "Very Rare": 4,
+  Legendary: 5,
+  Artifact: 6,
+  Wondrous: 7,
+  Varies: 8
+};
+
+const sortItems = (items) => {
+  return [...items].sort((a, b) => {
+    const rarityDiff =
+      (RARITY_ORDER[a.rarity] || 0) - (RARITY_ORDER[b.rarity] || 0);
+    if (rarityDiff !== 0) return rarityDiff;
+
+    return a.name.localeCompare(b.name);
+  });
+};
+
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
   const { resourceHubs, loading, error } = usePublicResourceHubs();
@@ -102,6 +124,9 @@ export default function Lodestone() {
     }
   };
 
+  // Sort the hubs alphabetically before rendering in the Select
+  const sortedHubs = resourceHubs.sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -142,31 +167,17 @@ export default function Lodestone() {
         </div>
 
         <div className="fixed sm:static bottom-0 left-0 right-0 p-4 bg-[#D4C4B4] sm:bg-transparent sm:p-0 sm:mb-8 sm:max-w-xl sm:mx-auto w-full">
-          <div className="flex gap-4 w-full">
+          <div className="flex justify-center gap-4 w-full">
             <Select value={selectedHub} onValueChange={setSelectedHub}>
-              <SelectTrigger className="flex-1" disabled={loading}>
-                <SelectValue
-                  placeholder={
-                    loading ? "Loading hubs..." : "Select a resource hub"
-                  }
-                />
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Choose a resource hub" />
               </SelectTrigger>
               <SelectContent>
-                {error ? (
-                  <SelectItem value="error" disabled>
-                    Error loading hubs: {error.message}
+                {sortedHubs.map((hub) => (
+                  <SelectItem key={hub.id} value={hub.id}>
+                    {hub.name}
                   </SelectItem>
-                ) : resourceHubs.length === 0 ? (
-                  <SelectItem value="empty" disabled>
-                    No resource hubs available
-                  </SelectItem>
-                ) : (
-                  resourceHubs.map((hub) => (
-                    <SelectItem key={hub.id} value={hub.id}>
-                      {hub.name}
-                    </SelectItem>
-                  ))
-                )}
+                ))}
               </SelectContent>
             </Select>
             <Button
@@ -198,7 +209,7 @@ export default function Lodestone() {
                 </Button>
               </div>
               <div className="space-y-4">
-                {generatedList.items.map((item, index) => (
+                {sortItems(generatedList.items).map((item, index) => (
                   <div
                     key={`${item.id}-${index}`}
                     className="flex justify-between items-center"
@@ -222,7 +233,7 @@ export default function Lodestone() {
           )}
 
           {history.length > 0 && (
-            <div className="w-full flex justify-end mt-4">
+            <div className="w-full flex justify-center mt-4">
               <Button variant="default" onClick={() => setShowHistory(true)}>
                 <History className="h-4 w-4 mr-2" />
                 <span>View History</span>
@@ -270,7 +281,7 @@ export default function Lodestone() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4">
-                      {list.items.map((item, itemIndex) => (
+                      {sortItems(list.items).map((item, itemIndex) => (
                         <div
                           key={`${item.id}-${itemIndex}`}
                           className="flex justify-between items-center"

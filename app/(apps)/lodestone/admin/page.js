@@ -24,7 +24,7 @@ import { ProvisionProvider } from "../context/ProvisionContext";
 export default function Admin() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("provisions");
+  const [activeTab, setActiveTab] = useState("hubs");
   const [showHubForm, setShowHubForm] = useState(false);
   const [showProvisionForm, setShowProvisionForm] = useState(false);
 
@@ -75,7 +75,7 @@ export default function Admin() {
 
             <main className="flex-1">
               <Tabs
-                defaultValue="provisions"
+                defaultValue="hubs"
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full"
@@ -85,21 +85,21 @@ export default function Admin() {
                     <TabsList className="w-full p-0 h-14 flex items-center gap-1 sm:gap-2 lg:justify-between bg-transparent">
                       <div className="flex gap-1 sm:gap-2 flex-1 lg:flex-none lg:w-[calc((100vw-4rem-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
                         <TabsTrigger
-                          value="provisions"
-                          className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                        >
-                          <Package className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden min-[360px]:inline truncate">
-                            Resources
-                          </span>
-                        </TabsTrigger>
-                        <TabsTrigger
                           value="hubs"
                           className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
                           <MapPin className="h-4 w-4 flex-shrink-0" />
                           <span className="hidden min-[360px]:inline truncate">
                             Resource Hubs
+                          </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="provisions"
+                          className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                        >
+                          <Package className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden min-[360px]:inline truncate">
+                            Resources
                           </span>
                         </TabsTrigger>
                       </div>

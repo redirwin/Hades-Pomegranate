@@ -359,9 +359,7 @@ export default function ResourceHubForm({
             {/* Provision Range */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Minimum Provisions
-                </label>
+                <label className="text-sm font-medium">Minimum Resources</label>
                 <Input
                   type="number"
                   min="0"
@@ -372,14 +370,12 @@ export default function ResourceHubForm({
                       minProvisions: parseInt(e.target.value)
                     })
                   }
-                  placeholder="Enter minimum provisions"
+                  placeholder="Enter minimum Resources"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Maximum Provisions
-                </label>
+                <label className="text-sm font-medium">Maximum Resources</label>
                 <Input
                   type="number"
                   min="0"
@@ -390,16 +386,14 @@ export default function ResourceHubForm({
                       maxProvisions: parseInt(e.target.value)
                     })
                   }
-                  placeholder="Enter maximum provisions"
+                  placeholder="Enter maximum resources"
                 />
               </div>
             </div>
 
             {/* Provisions Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Available Provisions
-              </label>
+              <label className="text-sm font-medium">Available Resources</label>
               <div className="border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
                 {sortedProvisions.map((provision) => (
                   <div
