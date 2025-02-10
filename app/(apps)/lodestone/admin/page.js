@@ -89,7 +89,7 @@ export default function Admin() {
                           className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
                           <Package className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden [min-width:360px]:inline truncate">
+                          <span className="hidden min-[360px]:inline truncate">
                             Resources
                           </span>
                         </TabsTrigger>
@@ -98,7 +98,7 @@ export default function Admin() {
                           className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
                           <MapPin className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden [min-width:360px]:inline truncate">
+                          <span className="hidden min-[360px]:inline truncate">
                             Resource Hubs
                           </span>
                         </TabsTrigger>
