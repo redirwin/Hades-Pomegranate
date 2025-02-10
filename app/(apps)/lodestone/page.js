@@ -5,7 +5,14 @@ import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LogIn, LayoutDashboard, Wand2, History, Trash2 } from "lucide-react";
+import {
+  LogIn,
+  LayoutDashboard,
+  Wand2,
+  History,
+  Trash2,
+  X
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -104,8 +111,8 @@ export default function Lodestone() {
             {user ? (
               <Button variant="default" asChild>
                 <Link href="/lodestone/admin">
-                  <LayoutDashboard className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Admin</span>
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  <span>Admin</span>
                 </Link>
               </Button>
             ) : (
@@ -114,10 +121,8 @@ export default function Lodestone() {
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
               >
-                <LogIn className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">
-                  {isLoading ? "Logging in..." : "Login"}
-                </span>
+                <LogIn className="h-4 w-4 mr-2" />
+                <span>{isLoading ? "Logging in..." : "Login"}</span>
               </Button>
             )}
           </nav>
@@ -134,8 +139,10 @@ export default function Lodestone() {
           <p className="text-lg sm:text-xl text-foreground/80 mb-8 text-center">
             Create and manage inventory lists for your RPG encounters.
           </p>
+        </div>
 
-          <div className="flex gap-4 w-full max-w-xl mb-8">
+        <div className="fixed sm:static bottom-0 left-0 right-0 p-4 bg-[#D4C4B4] sm:bg-transparent sm:p-0 sm:mb-8 sm:max-w-xl sm:mx-auto w-full">
+          <div className="flex gap-4 w-full">
             <Select value={selectedHub} onValueChange={setSelectedHub}>
               <SelectTrigger className="flex-1" disabled={loading}>
                 <SelectValue
@@ -172,12 +179,24 @@ export default function Lodestone() {
               </span>
             </Button>
           </div>
+        </div>
 
+        <div className="pb-20 sm:pb-0 flex flex-col items-center sm:items-start max-w-xl mx-auto">
           {generatedList && (
-            <div className="w-full max-w-xl border rounded-lg p-6 space-y-4">
-              <h3 className="text-xl font-semibold mb-4">
-                {generatedList.hubName} - Generated List
-              </h3>
+            <div className="w-full border rounded-lg p-6 space-y-4 relative">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold">
+                  {generatedList.hubName} - Generated List
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setGeneratedList(null)}
+                  className="h-8 w-8 -mt-2 -mr-2"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <div className="space-y-4">
                 {generatedList.items.map((item, index) => (
                   <div
@@ -202,30 +221,33 @@ export default function Lodestone() {
             </div>
           )}
 
-          <Button
-            variant="outline"
-            onClick={() => setShowHistory(true)}
-            className="mt-4"
-          >
-            <History className="h-4 w-4 mr-2" />
-            View History
-          </Button>
+          {history.length > 0 && (
+            <div className="w-full flex justify-end mt-4">
+              <Button variant="default" onClick={() => setShowHistory(true)}>
+                <History className="h-4 w-4 mr-2" />
+                <span>View History</span>
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pr-8">
               <DialogTitle>List History</DialogTitle>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={clearHistory}
-                className="h-8"
+                variant="default"
+                size="default"
+                onClick={() => {
+                  clearHistory();
+                  setShowHistory(false);
+                  setGeneratedList(null);
+                }}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear History
+                <Trash2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Clear History</span>
               </Button>
             </div>
           </DialogHeader>
