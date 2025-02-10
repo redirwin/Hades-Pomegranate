@@ -11,6 +11,8 @@ import { deleteImage } from "../../firebase/storage";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { updateResourceHub } from "../../firebase/firestore";
 import { SearchInput } from "@/components/ui/search-input";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { provisions, deleteProvision, loading, error } = useProvisions();
@@ -18,6 +20,11 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { toast } = useToast();
   const { resourceHubs } = useResourceHubs();
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    provision: null
+  });
+  const { settings } = useSettings();
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -36,32 +43,40 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const provision = provisions.find((p) => p.id === id);
-      if (!provision) return;
-
-      // First, remove this provision from all resource hubs that reference it
-      const updateHubPromises = resourceHubs
-        .filter((hub) => hub.selectedProvisions?.includes(id))
-        .map((hub) => {
-          const newSelectedProvisions = (hub.selectedProvisions || []).filter(
-            (provisionId) => provisionId !== id
-          );
-          return updateResourceHub(hub.id, {
-            ...hub,
-            selectedProvisions: newSelectedProvisions
-          });
+  const handleDelete = async (provision) => {
+    if (settings.showDeletionConfirmation) {
+      setDeleteConfirmation({
+        isOpen: true,
+        provision
+      });
+    } else {
+      // Direct deletion without confirmation
+      try {
+        await deleteProvision(provision.id);
+        if (provision.imageUrl) {
+          await deleteImage(provision.imageUrl);
+        }
+        toast({
+          title: "Success",
+          description: "Provision deleted successfully"
         });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete provision",
+          variant: "destructive"
+        });
+      }
+    }
+  };
 
-      // Delete the image if it exists
+  const confirmDelete = async () => {
+    const provision = deleteConfirmation.provision;
+    try {
+      await deleteProvision(provision.id);
       if (provision.imageUrl) {
         await deleteImage(provision.imageUrl);
       }
-
-      // Wait for all updates to complete
-      await Promise.all([...updateHubPromises, deleteProvision(id)]);
-
       toast({
         title: "Success",
         description: "Provision deleted successfully"
@@ -72,6 +87,8 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
         description: "Failed to delete provision",
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, provision: null });
     }
   };
 
@@ -142,7 +159,7 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => handleDelete(provision.id)}
+                    onClick={() => handleDelete(provision)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -157,6 +174,16 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
         open={isFormOpen}
         onOpenChange={handleCloseForm}
         initialData={editingProvision}
+      />
+
+      <ConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(open) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen: open }))
+        }
+        title="Delete Provision"
+        description={`Are you sure you want to delete "${deleteConfirmation.provision?.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
       />
     </>
   );

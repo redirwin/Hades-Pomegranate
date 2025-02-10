@@ -1,5 +1,10 @@
 import { AuthProvider } from "./context/AuthContext";
+import { SettingsProvider } from "./context/SettingsContext";
 
 export default function LodestoneLayout({ children }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <SettingsProvider>
+      <AuthProvider>{children}</AuthProvider>
+    </SettingsProvider>
+  );
 }

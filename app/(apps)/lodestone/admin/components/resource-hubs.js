@@ -10,6 +10,8 @@ import { useResourceHubs } from "../../context/ResourceHubContext";
 import { deleteImage } from "../../firebase/storage";
 import { useProvisions } from "../../context/ProvisionContext";
 import { SearchInput } from "@/components/ui/search-input";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useSettings } from "../../context/SettingsContext";
 
 export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const { resourceHubs, deleteResourceHub, loading, error } = useResourceHubs();
@@ -17,6 +19,11 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const [editingHub, setEditingHub] = useState(null);
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    hub: null
+  });
+  const { settings } = useSettings();
 
   // Filter hubs based on search query
   const filteredHubs = resourceHubs.filter((hub) =>
@@ -28,32 +35,34 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const hub = resourceHubs.find((h) => h.id === id);
-      if (!hub) return;
-
-      // First, remove this hub from all provisions that reference it
-      const updateProvisionPromises = provisions
-        .filter((provision) => provision.selectedHubs?.includes(id))
-        .map((provision) => {
-          const newSelectedHubs = (provision.selectedHubs || []).filter(
-            (hubId) => hubId !== id
-          );
-          return updateProvision(provision.id, {
-            ...provision,
-            selectedHubs: newSelectedHubs
-          });
+  const handleDelete = async (hub) => {
+    if (settings.showDeletionConfirmation) {
+      setDeleteConfirmation({
+        isOpen: true,
+        hub
+      });
+    } else {
+      // Direct deletion without confirmation
+      try {
+        await deleteResourceHub(hub.id);
+        toast({
+          title: "Success",
+          description: "Resource hub deleted successfully"
         });
-
-      // Delete the image if it exists
-      if (hub.imageUrl) {
-        await deleteImage(hub.imageUrl);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete resource hub",
+          variant: "destructive"
+        });
       }
+    }
+  };
 
-      // Wait for all updates to complete
-      await Promise.all([...updateProvisionPromises, deleteResourceHub(id)]);
-
+  const confirmDelete = async () => {
+    const hub = deleteConfirmation.hub;
+    try {
+      await deleteResourceHub(hub.id);
       toast({
         title: "Success",
         description: "Resource hub deleted successfully"
@@ -64,6 +73,8 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
         description: "Failed to delete resource hub",
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, hub: null });
     }
   };
 
@@ -127,7 +138,7 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => handleDelete(hub.id)}
+                    onClick={() => handleDelete(hub)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -142,6 +153,16 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
         open={isFormOpen}
         onOpenChange={handleCloseForm}
         initialData={editingHub}
+      />
+
+      <ConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(open) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen: open }))
+        }
+        title="Delete Resource Hub"
+        description={`Are you sure you want to delete "${deleteConfirmation.hub?.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
       />
     </>
   );

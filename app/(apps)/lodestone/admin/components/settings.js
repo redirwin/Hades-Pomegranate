@@ -8,8 +8,33 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { useSettings } from "../../context/SettingsContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
+  const { settings, updateSettings } = useSettings();
+  const { toast } = useToast();
+
+  const handleToggleConfirmation = async (checked) => {
+    try {
+      await updateSettings({
+        ...settings,
+        showDeletionConfirmation: checked
+      });
+      toast({
+        title: "Success",
+        description: "Settings updated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update settings",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="mb-6">
@@ -36,7 +61,22 @@ export default function Settings() {
             </Accordion>
           </CardContent>
         </Card>
-        {/* Add more setting cards here as needed */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h2 className="text-lg font-medium">Deletion Confirmation</h2>
+                <p className="text-sm text-muted-foreground">
+                  Show a confirmation dialog when deleting items
+                </p>
+              </div>
+              <Switch
+                checked={settings.showDeletionConfirmation}
+                onCheckedChange={handleToggleConfirmation}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
