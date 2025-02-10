@@ -5,7 +5,7 @@ import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LogIn, LayoutDashboard, Wand2 } from "lucide-react";
+import { LogIn, LayoutDashboard, Wand2, History, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,6 +15,20 @@ import {
 } from "@/components/ui/select";
 import { usePublicResourceHubs } from "./hooks/usePublicResourceHubs";
 import { useToast } from "@/hooks/use-toast";
+import { useListHistory } from "./hooks/useListHistory";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
 
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
@@ -24,6 +38,8 @@ export default function Lodestone() {
   const [generatedList, setGeneratedList] = useState(null);
   const router = useRouter();
   const { toast } = useToast();
+  const [showHistory, setShowHistory] = useState(false);
+  const { history, addToHistory, clearHistory } = useListHistory();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -42,6 +58,7 @@ export default function Lodestone() {
 
     setIsLoading(true);
     try {
+      console.log("Generating list for hub:", selectedHub);
       const response = await fetch("/api/lodestone/generate", {
         method: "POST",
         headers: {
@@ -55,8 +72,19 @@ export default function Lodestone() {
       }
 
       const data = await response.json();
+      console.log("Generated list data:", data);
+
+      // Log the rarity distribution
+      const rarityCounts = data.items.reduce((acc, item) => {
+        acc[item.rarity] = (acc[item.rarity] || 0) + item.count;
+        return acc;
+      }, {});
+      console.log("Rarity distribution:", rarityCounts);
+
       setGeneratedList(data);
+      addToHistory(data);
     } catch (error) {
+      console.error("Error generating list:", error);
       toast({
         title: "Error",
         description: "Failed to generate list",
@@ -173,8 +201,80 @@ export default function Lodestone() {
               </div>
             </div>
           )}
+
+          <Button
+            variant="outline"
+            onClick={() => setShowHistory(true)}
+            className="mt-4"
+          >
+            <History className="h-4 w-4 mr-2" />
+            View History
+          </Button>
         </div>
       </main>
+
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex justify-between items-center">
+              <DialogTitle>List History</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearHistory}
+                className="h-8"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear History
+              </Button>
+            </div>
+          </DialogHeader>
+
+          {history.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">
+              No history available
+            </p>
+          ) : (
+            <Accordion type="single" collapsible className="w-full">
+              {history.map((list, index) => (
+                <AccordionItem key={list.timestamp} value={list.timestamp}>
+                  <AccordionTrigger>
+                    <div className="flex justify-between items-center w-full pr-4">
+                      <span>{list.hubName}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(list.timestamp), "MMM d, yyyy h:mm a")}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      {list.items.map((item, itemIndex) => (
+                        <div
+                          key={`${item.id}-${itemIndex}`}
+                          className="flex justify-between items-center"
+                        >
+                          <div>
+                            <span className="font-medium">
+                              {item.count} {item.name}
+                              {item.count > 1 ? "s" : ""}
+                            </span>
+                            <p className="text-sm text-muted-foreground">
+                              {item.rarity}
+                            </p>
+                          </div>
+                          <span className="text-primary font-medium">
+                            {item.price} gp each
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

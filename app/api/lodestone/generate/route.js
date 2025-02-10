@@ -13,55 +13,25 @@ function getRandomPrice(basePrice, lowerMod, upperMod) {
 function selectRandomProvisions(provisions, targetCount) {
   const results = [];
   const totalWeight = provisions.reduce((sum, p) => sum + p.weight, 0);
-  let currentScale = 1;
-  const maxAttempts = 3; // Prevent infinite loops
-  let attempts = 0;
 
-  while (
-    results.length < targetCount * 0.8 && // Keep trying until we hit 80% of target
-    attempts < maxAttempts // Or hit max attempts
-  ) {
-    attempts++;
+  // Create weighted ranges for selection
+  const ranges = [];
+  let currentTotal = 0;
+  provisions.forEach((p) => {
+    const start = currentTotal;
+    currentTotal += p.weight;
+    ranges.push({
+      provision: p,
+      start,
+      end: currentTotal
+    });
+  });
 
-    // Calculate scaled weights for this pass
-    const scaledProvisions = provisions.map((p) => ({
-      ...p,
-      weight: p.weight * currentScale
-    }));
-
-    const scaledTotalWeight = totalWeight * currentScale;
-
-    // Try to fill remaining slots
-    const remainingSlots = targetCount - results.length;
-
-    for (let i = 0; i < remainingSlots; i++) {
-      const random = Math.random() * scaledTotalWeight;
-      let currentWeight = 0;
-      let selected = false;
-
-      for (const provision of scaledProvisions) {
-        currentWeight += provision.weight;
-        if (random <= currentWeight) {
-          // Additional random check based on scaled rarity
-          const rarityCheck = Math.random() * 100;
-          // More rare items need a lower random number to be selected
-          if (rarityCheck <= (provision.weight / scaledTotalWeight) * 100) {
-            results.push(provision);
-            selected = true;
-          }
-          break;
-        }
-      }
-
-      // If nothing was selected this round, continue to next slot
-      if (!selected) {
-        continue;
-      }
-    }
-
-    // Increase scale for next pass if we're still under target
-    if (results.length < targetCount * 0.8) {
-      currentScale *= 1.5; // Increase weights by 50% each pass
+  for (let i = 0; i < targetCount; i++) {
+    const roll = Math.random() * totalWeight;
+    const selected = ranges.find((r) => roll >= r.start && roll < r.end);
+    if (selected) {
+      results.push(selected.provision);
     }
   }
 
@@ -70,7 +40,7 @@ function selectRandomProvisions(provisions, targetCount) {
 
 export async function POST(request) {
   try {
-    const { hubId } = await request.json();
+    const { hubId, testMode } = await request.json();
 
     // Get the resource hub
     const hubDoc = await db.collection("resourceHubs").doc(hubId).get();
@@ -82,13 +52,21 @@ export async function POST(request) {
 
     // Get the rarity settings
     const rarityDoc = await db.collection("settings").doc("rarity").get();
+
     const rarityWeights = rarityDoc.exists
       ? rarityDoc.data().options.reduce((acc, option) => {
-          acc[option.value] = option.weight === "random" ? 50 : option.weight;
+          // Ensure weight is always a number
+          const weight =
+            option.weight === "random"
+              ? 50
+              : typeof option.weight === "string"
+              ? parseInt(option.weight, 10)
+              : Number(option.weight);
+
+          acc[option.value] = weight;
           return acc;
         }, {})
       : {
-          // Fallback weights if settings don't exist
           Junk: 100,
           Common: 80,
           Uncommon: 60,
@@ -112,8 +90,7 @@ export async function POST(request) {
       .filter((doc) => doc.exists)
       .map((doc) => {
         const data = doc.data();
-        const weight = rarityWeights[data.rarity] || 50; // Use dynamic weights
-
+        const weight = rarityWeights[data.rarity] || 50;
         return {
           id: doc.id,
           ...data,
@@ -132,10 +109,9 @@ export async function POST(request) {
 
     // Generate prices and count occurrences
     const results = selectedProvisions.reduce((acc, provision) => {
-      const key = provision.id; // Only use the provision ID as key
+      const key = provision.id;
 
       if (!acc[key]) {
-        // Generate price once per unique item
         const price = getRandomPrice(
           provision.basePrice,
           hub.lowerPriceModifier || 0,
@@ -145,7 +121,7 @@ export async function POST(request) {
         acc[key] = {
           id: provision.id,
           name: provision.name,
-          price, // Same price will be used for all instances of this item
+          price,
           count: 0,
           rarity: provision.rarity
         };
@@ -160,7 +136,6 @@ export async function POST(request) {
       items: Object.values(results)
     });
   } catch (error) {
-    console.error("Error generating list:", error);
     return Response.json(
       { error: "Failed to generate list", details: error.message },
       { status: 500 }
