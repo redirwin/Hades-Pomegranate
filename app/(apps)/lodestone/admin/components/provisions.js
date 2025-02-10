@@ -10,12 +10,14 @@ import { useProvisions } from "../../context/ProvisionContext";
 import { deleteImage } from "../../firebase/storage";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { updateResourceHub } from "../../firebase/firestore";
+import { SearchInput } from "@/components/ui/search-input";
 
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { provisions, deleteProvision, loading, error } = useProvisions();
   const [editingProvision, setEditingProvision] = useState(null);
   const { toast } = useToast();
   const { resourceHubs } = useResourceHubs();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -78,6 +80,13 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     setEditingProvision(null);
   };
 
+  // Filter provisions based on search query
+  const filteredProvisions = provisions.filter(
+    (provision) =>
+      provision.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      provision.rarity.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return <div className="text-muted-foreground">Loading provisions...</div>;
   }
@@ -88,8 +97,15 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
+      <div className="mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
+        <SearchInput
+          placeholder="Search resources..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {provisions.map((provision) => (
+        {filteredProvisions.map((provision) => (
           <Card key={provision.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="flex items-center gap-4 p-4">

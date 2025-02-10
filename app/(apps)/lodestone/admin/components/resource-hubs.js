@@ -9,12 +9,19 @@ import ResourceHubForm from "./resource-hub-form";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { deleteImage } from "../../firebase/storage";
 import { useProvisions } from "../../context/ProvisionContext";
+import { SearchInput } from "@/components/ui/search-input";
 
 export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const { resourceHubs, deleteResourceHub, loading, error } = useResourceHubs();
   const { provisions, updateProvision } = useProvisions();
   const [editingHub, setEditingHub] = useState(null);
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter hubs based on search query
+  const filteredHubs = resourceHubs.filter((hub) =>
+    hub.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleEdit = (hub) => {
     setEditingHub(hub);
@@ -77,8 +84,15 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
+      <div className="mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
+        <SearchInput
+          placeholder="Search resource hubs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {resourceHubs.map((hub) => (
+        {filteredHubs.map((hub) => (
           <Card key={hub.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="flex items-center gap-4 p-4">
