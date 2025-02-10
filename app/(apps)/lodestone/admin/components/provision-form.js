@@ -23,6 +23,7 @@ import { useRarity } from "../../context/RarityContext";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
+import { capitalizeWords } from "../../utils/text";
 
 export default function ProvisionForm({
   open,
@@ -108,6 +109,7 @@ export default function ProvisionForm({
 
       const dataToSave = {
         ...formData,
+        name: capitalizeWords(formData.name),
         imageUrl
       };
 

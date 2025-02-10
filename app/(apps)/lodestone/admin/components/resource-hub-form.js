@@ -16,6 +16,31 @@ import { useResourceHubs } from "../../context/ResourceHubContext";
 import { useProvisions } from "../../context/ProvisionContext";
 import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
+import { capitalizeWords } from "../../utils/text";
+
+const RARITY_ORDER = {
+  Junk: 0,
+  Common: 1,
+  Uncommon: 2,
+  Rare: 3,
+  "Very Rare": 4,
+  Legendary: 5,
+  Artifact: 6,
+  Wondrous: 7,
+  Varies: 8
+};
+
+const rarityColors = {
+  Junk: "text-gray-500",
+  Common: "text-green-600",
+  Uncommon: "text-cyan-600",
+  Rare: "text-blue-600",
+  "Very Rare": "text-purple-600",
+  Legendary: "text-yellow-600",
+  Artifact: "text-red-600",
+  Wondrous: "text-fuchsia-600",
+  Varies: "text-orange-600"
+};
 
 export default function ResourceHubForm({
   open,
@@ -159,6 +184,7 @@ export default function ResourceHubForm({
 
       const dataToSave = {
         ...formData,
+        name: capitalizeWords(formData.name),
         imageUrl
       };
 
@@ -252,10 +278,15 @@ export default function ResourceHubForm({
     }
   };
 
-  // Sort the provisions alphabetically before rendering
-  const sortedProvisions = provisions.sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+  // Update the sorting logic
+  const sortedProvisions = provisions.sort((a, b) => {
+    // First sort by rarity
+    const rarityDiff =
+      (RARITY_ORDER[a.rarity] || 0) - (RARITY_ORDER[b.rarity] || 0);
+    if (rarityDiff !== 0) return rarityDiff;
+    // Then sort alphabetically within same rarity
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -413,7 +444,12 @@ export default function ResourceHubForm({
                       htmlFor={`provision-${provision.id}`}
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      {provision.name}
+                      {capitalizeWords(provision.name)}{" "}
+                      <span
+                        className={`${rarityColors[provision.rarity]} ml-1`}
+                      >
+                        ({provision.rarity})
+                      </span>
                     </label>
                   </div>
                 ))}

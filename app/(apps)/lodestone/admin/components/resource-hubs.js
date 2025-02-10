@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { capitalizeWords } from "../../utils/text";
 
 export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const { resourceHubs, deleteResourceHub, loading, error } = useResourceHubs();
@@ -154,11 +155,12 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{hub.name}</h3>
+                  <h3 className="text-lg font-semibold">
+                    {capitalizeWords(hub.name)}
+                  </h3>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>
-                      {hub.minProvisions}-{hub.maxProvisions} provisions per
-                      refresh
+                      {hub.minProvisions}-{hub.maxProvisions} Resources Per List
                     </span>
                   </div>
                 </div>

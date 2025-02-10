@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { capitalizeWords } from "../../utils/text";
 
 const RARITY_ORDER = {
   Junk: 0,
@@ -218,7 +219,9 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{provision.name}</h3>
+                  <h3 className="font-semibold truncate">
+                    {capitalizeWords(provision.name)}
+                  </h3>
                   <div className="flex items-center gap-2 text-sm">
                     <span className={rarityColors[provision.rarity]}>
                       {provision.rarity}
