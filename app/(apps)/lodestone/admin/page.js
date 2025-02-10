@@ -54,7 +54,6 @@ export default function Admin() {
       <ResourceHubProvider>
         <ProvisionProvider>
           <div className="min-h-screen flex flex-col">
-            {/* Header */}
             <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex items-center justify-between p-4 sm:p-8 max-w-7xl mx-auto w-full">
                 <h1 className="text-xl font-bold">Lodestone Admin</h1>
@@ -74,7 +73,6 @@ export default function Admin() {
               </div>
             </header>
 
-            {/* Main Content */}
             <main className="flex-1">
               <Tabs
                 defaultValue="provisions"
@@ -91,7 +89,7 @@ export default function Admin() {
                           className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
                           <Package className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden min-[360px]:inline truncate">
+                          <span className="hidden [min-width:360px]:inline truncate">
                             Resources
                           </span>
                         </TabsTrigger>
@@ -100,7 +98,7 @@ export default function Admin() {
                           className="flex items-center justify-center gap-1 sm:gap-2 w-1/2 min-w-0 py-3 rounded-md border border-border hover:border-primary hover:bg-primary hover:text-primary-foreground data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                         >
                           <MapPin className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden min-[360px]:inline truncate">
+                          <span className="hidden [min-width:360px]:inline truncate">
                             Resource Hubs
                           </span>
                         </TabsTrigger>
@@ -137,7 +135,6 @@ export default function Admin() {
               </Tabs>
             </main>
 
-            {/* Floating Add Button - Hide in settings tab */}
             {activeTab !== "settings" && (
               <Button
                 size="icon"
