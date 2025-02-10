@@ -228,6 +228,25 @@ export default function Lodestone() {
                     </span>
                   </div>
                 ))}
+
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex justify-between items-center font-medium">
+                    <div>
+                      Total Items:{" "}
+                      {generatedList.items.reduce(
+                        (sum, item) => sum + item.count,
+                        0
+                      )}
+                    </div>
+                    <div>
+                      Total Value:{" "}
+                      {generatedList.items
+                        .reduce((sum, item) => sum + item.price * item.count, 0)
+                        .toFixed(2)}{" "}
+                      gp
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -300,6 +319,28 @@ export default function Lodestone() {
                           </span>
                         </div>
                       ))}
+
+                      <div className="mt-6 pt-4 border-t">
+                        <div className="flex justify-between items-center font-medium">
+                          <div>
+                            Total Items:{" "}
+                            {list.items.reduce(
+                              (sum, item) => sum + item.count,
+                              0
+                            )}
+                          </div>
+                          <div>
+                            Total Value:{" "}
+                            {list.items
+                              .reduce(
+                                (sum, item) => sum + item.price * item.count,
+                                0
+                              )
+                              .toFixed(2)}{" "}
+                            gp
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
