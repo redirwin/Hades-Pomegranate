@@ -12,6 +12,13 @@ import { useProvisions } from "../../context/ProvisionContext";
 import { SearchInput } from "@/components/ui/search-input";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useSettings } from "../../context/SettingsContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
   const { resourceHubs, deleteResourceHub, loading, error } = useResourceHubs();
@@ -24,11 +31,20 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
     hub: null
   });
   const { settings } = useSettings();
+  const [sortOrder, setSortOrder] = useState("alphabetical");
 
-  // Filter hubs based on search query
-  const filteredHubs = resourceHubs.filter((hub) =>
-    hub.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Updated filter and sort logic
+  const filteredHubs = resourceHubs
+    .filter((hub) => hub.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortOrder === "alphabetical") {
+        return a.name.localeCompare(b.name);
+      } else if (sortOrder === "newest") {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      } else {
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      }
+    });
 
   const handleEdit = (hub) => {
     setEditingHub(hub);
@@ -95,12 +111,23 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
-      <div className="mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
+      <div className="flex gap-4 mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
         <SearchInput
           placeholder="Search resource hubs..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1"
         />
+        <Select value={sortOrder} onValueChange={setSortOrder}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="alphabetical">Alphabetical</SelectItem>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredHubs.map((hub) => (

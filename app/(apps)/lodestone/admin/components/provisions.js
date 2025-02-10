@@ -13,6 +13,13 @@ import { updateResourceHub } from "../../firebase/firestore";
 import { SearchInput } from "@/components/ui/search-input";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useSettings } from "../../context/SettingsContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 export default function Provisions({ isFormOpen, setIsFormOpen }) {
   const { provisions, deleteProvision, loading, error } = useProvisions();
@@ -25,6 +32,7 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     provision: null
   });
   const { settings } = useSettings();
+  const [sortOrder, setSortOrder] = useState("alphabetical");
 
   const rarityColors = {
     Junk: "text-gray-500",
@@ -97,12 +105,22 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     setEditingProvision(null);
   };
 
-  // Filter provisions based on search query
-  const filteredProvisions = provisions.filter(
-    (provision) =>
-      provision.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      provision.rarity.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Updated filter and sort logic
+  const filteredProvisions = provisions
+    .filter(
+      (provision) =>
+        provision.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        provision.rarity.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "alphabetical") {
+        return a.name.localeCompare(b.name);
+      } else if (sortOrder === "newest") {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      } else {
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      }
+    });
 
   if (loading) {
     return <div className="text-muted-foreground">Loading provisions...</div>;
@@ -114,12 +132,23 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
 
   return (
     <>
-      <div className="mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
+      <div className="flex gap-4 mb-6 lg:w-[calc((100%-2rem)/3)] lg:max-w-[calc((1280px-4rem-2rem)/3)]">
         <SearchInput
           placeholder="Search resources..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1"
         />
+        <Select value={sortOrder} onValueChange={setSortOrder}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="alphabetical">Alphabetical</SelectItem>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProvisions.map((provision) => (
