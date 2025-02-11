@@ -35,14 +35,19 @@ export const AuthProvider = ({ children }) => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
-      // Store the token in a cookie
-      await fetch("/api/auth/session", {
+
+      const response = await fetch("/api/auth/session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ idToken })
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
       return result;
     } catch (error) {
       console.error("Google login error:", error);

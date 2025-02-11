@@ -77,6 +77,11 @@ export default function Lodestone() {
       router.push("/lodestone/admin");
     } catch (error) {
       console.error("Error logging in with Google:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log in",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
