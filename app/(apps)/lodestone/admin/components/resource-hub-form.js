@@ -84,9 +84,13 @@ export default function ResourceHubForm({
           lowerPriceModifier: 0
         }
       );
+      setImagePreview(null);
+      setImageFile(null);
     } else if (initialData) {
       // Set form data when editing
       setFormData(initialData);
+      // Set the image preview to the existing imageUrl
+      setImagePreview(initialData.imageUrl);
     }
   }, [open, initialData]);
 

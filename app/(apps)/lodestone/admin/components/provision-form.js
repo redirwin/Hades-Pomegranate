@@ -45,6 +45,7 @@ export default function ProvisionForm({
     }
   );
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -99,12 +100,12 @@ export default function ProvisionForm({
     try {
       let imageUrl = formData.imageUrl;
 
-      if (formData.imageFile) {
+      if (imageFile) {
         if (initialData?.imageUrl) {
           await deleteImage(initialData.imageUrl);
         }
-        const path = `provisions/${Date.now()}-${formData.imageFile.name}`;
-        imageUrl = await uploadImage(formData.imageFile, path);
+        const path = `provisions/${Date.now()}-${imageFile.name}`;
+        imageUrl = await uploadImage(imageFile, path);
       }
 
       const dataToSave = {
@@ -201,10 +202,7 @@ export default function ProvisionForm({
       if (imagePreview && !formData.imageUrl) {
         URL.revokeObjectURL(imagePreview);
       }
-      setFormData({
-        ...formData,
-        imageFile: file
-      });
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);

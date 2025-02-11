@@ -74,10 +74,11 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
     } else {
       // Direct deletion without confirmation
       try {
-        await deleteProvision(provision.id);
+        // Delete the image first if it exists
         if (provision.imageUrl) {
           await deleteImage(provision.imageUrl);
         }
+        await deleteProvision(provision.id);
         toast({
           title: "Success",
           description: "Provision deleted successfully"

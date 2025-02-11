@@ -59,40 +59,47 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
         hub
       });
     } else {
-      // Direct deletion without confirmation
       try {
+        // Delete the image first if it exists
+        if (hub.imageUrl) {
+          await deleteImage(hub.imageUrl);
+        }
         await deleteResourceHub(hub.id);
         toast({
           title: "Success",
-          description: "Resource hub deleted successfully"
+          description: "Hub deleted successfully"
         });
       } catch (error) {
-        console.error("Failed to delete resource hub:", error);
+        console.error("Failed to delete hub:", error);
         toast({
           title: "Error",
-          description: "Failed to delete resource hub",
+          description: "Failed to delete hub",
           variant: "destructive"
         });
       }
     }
   };
 
-  const confirmDelete = async () => {
-    const hub = deleteConfirmation.hub;
+  const handleConfirmDelete = async () => {
     try {
+      const hub = deleteConfirmation.hub;
+      // Delete the image first if it exists
+      if (hub.imageUrl) {
+        await deleteImage(hub.imageUrl);
+      }
       await deleteResourceHub(hub.id);
+      setDeleteConfirmation({ isOpen: false, hub: null });
       toast({
         title: "Success",
-        description: "Resource hub deleted successfully"
+        description: "Hub deleted successfully"
       });
     } catch (error) {
+      console.error("Failed to delete hub:", error);
       toast({
         title: "Error",
-        description: "Failed to delete resource hub",
+        description: "Failed to delete hub",
         variant: "destructive"
       });
-    } finally {
-      setDeleteConfirmation({ isOpen: false, hub: null });
     }
   };
 
@@ -200,7 +207,7 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
         }
         title="Delete Resource Hub"
         description={`Are you sure you want to delete "${deleteConfirmation.hub?.name}"? This action cannot be undone.`}
-        onConfirm={confirmDelete}
+        onConfirm={handleConfirmDelete}
       />
     </>
   );
