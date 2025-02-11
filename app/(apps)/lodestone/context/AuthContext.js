@@ -48,6 +48,16 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Failed to create session");
       }
 
+      // Wait for auth state to update
+      await new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            unsubscribe();
+            resolve();
+          }
+        });
+      });
+
       return result;
     } catch (error) {
       console.error("Google login error:", error);
