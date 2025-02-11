@@ -14,10 +14,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useResourceHubs } from "../../context/ResourceHubContext";
 import { useProvisions } from "../../context/ProvisionContext";
-import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
 import { capitalizeWords } from "../../utils/text";
-import { processImage } from "../../utils/image-processing";
+import { useImageHandler } from "../../hooks/use-image-handler";
 
 const RARITY_ORDER = {
   Junk: 0,
@@ -51,121 +50,51 @@ export default function ResourceHubForm({
   const { addResourceHub, updateResourceHub } = useResourceHubs();
   const { provisions, updateProvision } = useProvisions();
   const { toast } = useToast();
-  const [formData, setFormData] = useState(
-    initialData || {
-      name: "",
-      description: "",
-      minProvisions: 1,
-      maxProvisions: 5,
-      selectedProvisions: [],
-      imageUrl: "",
-      imageFile: null,
-      upperPriceModifier: 0,
-      lowerPriceModifier: 0
-    }
-  );
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const {
+    imageFile,
+    imagePreview,
+    handleImageSelect,
+    handleImageDelete: baseHandleImageDelete,
+    handleImageUpload,
+    resetImage,
+    setImagePreview
+  } = useImageHandler(initialData?.imageUrl);
   const fileInputRef = useRef(null);
 
-  // Reset form when dialog closes or when initialData changes
+  // Move formData initialization outside useEffect
+  const initialFormState = {
+    name: "",
+    description: "",
+    minProvisions: 1,
+    maxProvisions: 5,
+    selectedProvisions: [],
+    imageUrl: "",
+    upperPriceModifier: 0,
+    lowerPriceModifier: 0
+  };
+
+  const [formData, setFormData] = useState(initialData || initialFormState);
+
   useEffect(() => {
     if (!open) {
-      // Reset form to initial state when dialog closes
-      setFormData(
-        initialData || {
-          name: "",
-          description: "",
-          minProvisions: 1,
-          maxProvisions: 5,
-          selectedProvisions: [],
-          imageUrl: "",
-          imageFile: null,
-          upperPriceModifier: 0,
-          lowerPriceModifier: 0
-        }
-      );
-      setImagePreview(null);
-      setImageFile(null);
+      resetImage();
+      setFormData(initialFormState);
     } else if (initialData) {
-      // Set form data when editing
       setFormData(initialData);
-      // Set the image preview to the existing imageUrl
       setImagePreview(initialData.imageUrl);
     }
-  }, [open, initialData]);
-
-  const handleImageSelect = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        if (imagePreview && !formData.imageUrl) {
-          URL.revokeObjectURL(imagePreview);
-        }
-
-        // Process the image before setting it
-        const processedFile = await processImage(file);
-        setImageFile(processedFile);
-
-        // Create preview of the processed image
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(processedFile);
-
-        toast({
-          title: "Success",
-          description: "Image processed successfully"
-        });
-      } catch (error) {
-        console.error("Error processing image:", error);
-        toast({
-          title: "Error",
-          description: "Failed to process image",
-          variant: "destructive"
-        });
-      }
-    }
-  };
+  }, [open, initialData]); // Remove setFormData and other function dependencies
 
   const handleImageDelete = async () => {
     try {
-      // If it's an existing image (has a URL), delete from storage
-      if (formData.imageUrl) {
-        await deleteImage(formData.imageUrl);
-      }
-      // If it's just a preview, revoke the object URL
-      else if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-
-      // Update form data
-      setFormData({
-        ...formData,
-        imageUrl: ""
-      });
-      // Update preview state
-      setImagePreview(null);
-      setImageFile(null);
-
-      // If editing, update the resource hub without the image
-      if (initialData?.id) {
-        await updateResourceHub(initialData.id, {
-          ...formData,
-          imageUrl: ""
-        });
-        toast({
-          title: "Success",
-          description: "Image removed successfully"
-        });
-      }
+      const updatedData = await baseHandleImageDelete(
+        formData,
+        initialData,
+        updateResourceHub
+      );
+      setFormData(updatedData);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove image",
-        variant: "destructive"
-      });
+      console.error("Failed to delete image:", error);
     }
   };
 
@@ -197,17 +126,11 @@ export default function ResourceHubForm({
     }
 
     try {
-      let imageUrl = formData.imageUrl;
-
-      if (imageFile) {
-        // If updating and there's an existing image, delete it first
-        if (initialData?.imageUrl) {
-          await deleteImage(initialData.imageUrl);
-        }
-        // Upload the new image
-        const path = `resource-hubs/${Date.now()}-${imageFile.name}`;
-        imageUrl = await uploadImage(imageFile, path);
-      }
+      const imageUrl = await handleImageUpload(
+        formData,
+        initialData,
+        "resource-hubs"
+      );
 
       const dataToSave = {
         ...formData,

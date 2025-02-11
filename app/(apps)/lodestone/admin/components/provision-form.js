@@ -21,10 +21,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useProvisions } from "../../context/ProvisionContext";
 import { useRarity } from "../../context/RarityContext";
 import { useResourceHubs } from "../../context/ResourceHubContext";
-import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
 import { capitalizeWords } from "../../utils/text";
-import { processImage } from "../../utils/image-processing";
+import { useImageHandler } from "../../hooks/use-image-handler";
 
 export default function ProvisionForm({
   open,
@@ -35,37 +34,38 @@ export default function ProvisionForm({
   const { resourceHubs, updateResourceHub } = useResourceHubs();
   const { rarityOptions } = useRarity();
   const { toast } = useToast();
-  const [formData, setFormData] = useState(
-    initialData || {
-      name: "",
-      basePrice: 0,
-      rarity: "",
-      selectedHubs: [],
-      imageUrl: "",
-      imageFile: null
-    }
-  );
-  const [imagePreview, setImagePreview] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+
+  // Move formData initialization outside useEffect
+  const initialFormState = {
+    name: "",
+    basePrice: 0,
+    rarity: "",
+    selectedHubs: [],
+    imageUrl: ""
+  };
+
+  const [formData, setFormData] = useState(initialData || initialFormState);
+
+  const {
+    imageFile,
+    imagePreview,
+    handleImageSelect,
+    handleImageDelete: baseHandleImageDelete,
+    handleImageUpload,
+    resetImage,
+    setImagePreview
+  } = useImageHandler(initialData?.imageUrl);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) {
-      setFormData(
-        initialData || {
-          name: "",
-          basePrice: 0,
-          rarity: "",
-          selectedHubs: [],
-          imageUrl: "",
-          imageFile: null
-        }
-      );
+      resetImage();
+      setFormData(initialFormState);
     } else if (initialData) {
       setFormData(initialData);
-      setImagePreview(initialData.imageUrl || null);
+      setImagePreview(initialData.imageUrl);
     }
-  }, [open, initialData]);
+  }, [open, initialData]); // Remove setFormData and other function dependencies
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,15 +99,11 @@ export default function ProvisionForm({
     }
 
     try {
-      let imageUrl = formData.imageUrl;
-
-      if (imageFile) {
-        if (initialData?.imageUrl) {
-          await deleteImage(initialData.imageUrl);
-        }
-        const path = `provisions/${Date.now()}-${imageFile.name}`;
-        imageUrl = await uploadImage(imageFile, path);
-      }
+      const imageUrl = await handleImageUpload(
+        formData,
+        initialData,
+        "provisions"
+      );
 
       const dataToSave = {
         ...formData,
@@ -180,77 +176,16 @@ export default function ProvisionForm({
     }
   };
 
-  const handleImageSelect = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        if (imagePreview && !formData.imageUrl) {
-          URL.revokeObjectURL(imagePreview);
-        }
-
-        // Process the image before setting it
-        const processedFile = await processImage(file);
-        setImageFile(processedFile);
-
-        // Create preview of the processed image
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(processedFile);
-
-        toast({
-          title: "Success",
-          description: "Image processed successfully"
-        });
-      } catch (error) {
-        console.error("Error processing image:", error);
-        toast({
-          title: "Error",
-          description: "Failed to process image",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
   const handleImageDelete = async () => {
     try {
-      // If it's an existing image (has a URL), delete from storage
-      if (formData.imageUrl) {
-        await deleteImage(formData.imageUrl);
-      }
-      // If it's just a preview, revoke the object URL
-      else if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-
-      // Update form data
-      setFormData({
-        ...formData,
-        imageUrl: ""
-      });
-      // Update preview state
-      setImagePreview(null);
-      setImageFile(null); // Use the separate imageFile state
-
-      // If editing, update the provision without the image
-      if (initialData?.id) {
-        await updateProvision(initialData.id, {
-          ...formData,
-          imageUrl: ""
-        });
-        toast({
-          title: "Success",
-          description: "Image removed successfully"
-        });
-      }
+      const updatedData = await baseHandleImageDelete(
+        formData,
+        initialData,
+        updateProvision
+      );
+      setFormData(updatedData);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove image",
-        variant: "destructive"
-      });
+      console.error("Failed to delete image:", error);
     }
   };
 
