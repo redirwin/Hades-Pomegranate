@@ -51,6 +51,16 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: "session" };
       }
 
+      // Wait for auth state to update
+      await new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            unsubscribe();
+            resolve();
+          }
+        });
+      });
+
       return { success: true, result };
     } catch (error) {
       console.error("Failed to authenticate:", error);
