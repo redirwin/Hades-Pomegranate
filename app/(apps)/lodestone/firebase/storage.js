@@ -16,7 +16,7 @@ export async function uploadImage(file, path) {
     const url = await getDownloadURL(snapshot.ref);
     return url;
   } catch (error) {
-    console.error("Error uploading image:", error);
+    console.error("Failed to upload image:", error);
     throw error;
   }
 }
@@ -26,7 +26,7 @@ export async function deleteImage(url) {
     const imageRef = ref(storage, url);
     await deleteObject(imageRef);
   } catch (error) {
-    console.error("Error deleting image:", error);
+    console.error("Failed to delete image:", error);
     throw error;
   }
 }

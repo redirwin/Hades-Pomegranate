@@ -92,7 +92,6 @@ export default function Lodestone() {
 
     setIsLoading(true);
     try {
-      console.log("Generating list for hub:", selectedHub);
       const response = await fetch("/api/lodestone/generate", {
         method: "POST",
         headers: {
@@ -106,19 +105,17 @@ export default function Lodestone() {
       }
 
       const data = await response.json();
-      console.log("Generated list data:", data);
 
       // Log the rarity distribution
       const rarityCounts = data.items.reduce((acc, item) => {
         acc[item.rarity] = (acc[item.rarity] || 0) + item.count;
         return acc;
       }, {});
-      console.log("Rarity distribution:", rarityCounts);
 
       setGeneratedList(data);
       addToHistory(data);
     } catch (error) {
-      console.error("Error generating list:", error);
+      console.error("Failed to generate list:", error);
       toast({
         title: "Error",
         description: "Failed to generate list",
@@ -171,7 +168,7 @@ export default function Lodestone() {
           </p>
         </div>
 
-        <div className="fixed sm:static bottom-0 left-0 right-0 p-4 bg-[#D4C4B4] sm:bg-transparent sm:p-0 sm:mb-8 sm:max-w-xl sm:mx-auto w-full">
+        <div className="fixed sm:static bottom-0 left-0 right-0 p-4 bg-[#D4C4B4] sm:bg-transparent sm:p-0 sm:mb-8 sm:max-w-xl sm:mx-auto w-full z-50 shadow-[0_-2px_4px_rgba(0,0,0,0.1)] sm:shadow-none">
           <div className="flex justify-center gap-4 w-full">
             <Select value={selectedHub} onValueChange={setSelectedHub}>
               <SelectTrigger className="w-[300px]">
@@ -234,8 +231,8 @@ export default function Lodestone() {
                   </div>
                 ))}
 
-                <div className="mt-6 pt-4 border-t">
-                  <div className="flex justify-between items-center font-medium">
+                <div className="mt-6 pt-4 border-t font-bold">
+                  <div className="flex justify-between items-center">
                     <div>
                       Total Items:{" "}
                       {generatedList.items.reduce(
@@ -243,7 +240,7 @@ export default function Lodestone() {
                         0
                       )}
                     </div>
-                    <div>
+                    <div className="text-primary">
                       Total Value:{" "}
                       {generatedList.items
                         .reduce((sum, item) => sum + item.price * item.count, 0)
@@ -325,8 +322,8 @@ export default function Lodestone() {
                         </div>
                       ))}
 
-                      <div className="mt-6 pt-4 border-t">
-                        <div className="flex justify-between items-center font-medium">
+                      <div className="mt-6 pt-4 border-t font-bold">
+                        <div className="flex justify-between items-center">
                           <div>
                             Total Items:{" "}
                             {list.items.reduce(
@@ -334,7 +331,7 @@ export default function Lodestone() {
                               0
                             )}
                           </div>
-                          <div>
+                          <div className="text-primary">
                             Total Value:{" "}
                             {list.items
                               .reduce(

@@ -16,7 +16,7 @@ export const updateRaritySettings = async (rarityOptions) => {
     const docRef = doc(db, "settings", "rarity");
     await updateDoc(docRef, { options: rarityOptions });
   } catch (error) {
-    console.error("Error updating rarity settings:", error);
+    console.error("Failed to update rarity settings:", error);
     throw error;
   }
 };
@@ -32,7 +32,7 @@ export const getRaritySettings = async () => {
     });
     return unsubscribe;
   } catch (error) {
-    console.error("Error getting rarity settings:", error);
+    console.error("Failed to fetch rarity settings:", error);
     throw error;
   }
 };
@@ -46,7 +46,7 @@ export const getProvisions = async () => {
       ...doc.data()
     }));
   } catch (error) {
-    console.error("Error getting provisions:", error);
+    console.error("Failed to fetch provisions:", error);
     throw error;
   }
 };
@@ -68,7 +68,7 @@ export const addProvision = async (provision, imageFile) => {
 
     return { id: docRef.id, ...provision, image: imageUrl };
   } catch (error) {
-    console.error("Error adding provision:", error);
+    console.error("Failed to add provision:", error);
     throw error;
   }
 };
@@ -90,7 +90,7 @@ export const updateProvision = async (id, provision, imageFile) => {
 
     return { id, ...provision, image: imageUrl };
   } catch (error) {
-    console.error("Error updating provision:", error);
+    console.error("Failed to update provision:", error);
     throw error;
   }
 };
@@ -100,7 +100,7 @@ export const deleteProvision = async (id) => {
     await deleteDoc(doc(db, "provisions", id));
     return id;
   } catch (error) {
-    console.error("Error deleting provision:", error);
+    console.error("Failed to delete provision:", error);
     throw error;
   }
 };
@@ -114,7 +114,7 @@ export const getResourceHubs = async () => {
       ...doc.data()
     }));
   } catch (error) {
-    console.error("Error getting resource hubs:", error);
+    console.error("Failed to fetch resource hubs:", error);
     throw error;
   }
 };
@@ -136,7 +136,7 @@ export const addResourceHub = async (hub, imageFile) => {
 
     return { id: docRef.id, ...hub, image: imageUrl };
   } catch (error) {
-    console.error("Error adding resource hub:", error);
+    console.error("Failed to add resource hub:", error);
     throw error;
   }
 };
@@ -158,7 +158,7 @@ export const updateResourceHub = async (id, hub, imageFile) => {
 
     return { id, ...hub, image: imageUrl };
   } catch (error) {
-    console.error("Error updating resource hub:", error);
+    console.error("Failed to update resource hub:", error);
     throw error;
   }
 };
@@ -168,7 +168,7 @@ export const deleteResourceHub = async (id) => {
     await deleteDoc(doc(db, "resourceHubs", id));
     return id;
   } catch (error) {
-    console.error("Error deleting resource hub:", error);
+    console.error("Failed to delete resource hub:", error);
     throw error;
   }
 };

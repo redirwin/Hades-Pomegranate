@@ -18,7 +18,7 @@ export function usePublicResourceHubs() {
         const data = await response.json();
         setResourceHubs(data);
       } catch (err) {
-        console.error("Error in usePublicResourceHubs:", err);
+        console.error("Failed to fetch resource hubs:", err);
         setError(err);
       } finally {
         setLoading(false);

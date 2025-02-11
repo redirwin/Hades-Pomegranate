@@ -137,6 +137,7 @@ export async function POST(request) {
       items: Object.values(results)
     });
   } catch (error) {
+    console.error("Failed to generate resource list:", error);
     return Response.json(
       { error: "Failed to generate list", details: error.message },
       { status: 500 }

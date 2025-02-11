@@ -17,14 +17,9 @@ export async function GET() {
     console.log("Found hubs:", hubs);
     return Response.json(hubs);
   } catch (error) {
-    console.error("Error fetching resource hubs:", error);
-    // Return more detailed error information during development
-    return Response.json(
-      {
-        error: "Failed to fetch resource hubs",
-        details: error.message
-      },
-      { status: 500 }
-    );
+    console.error("Failed to fetch public hubs:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch hubs" }), {
+      status: 500
+    });
   }
 }

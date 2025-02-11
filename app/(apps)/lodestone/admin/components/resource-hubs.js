@@ -67,6 +67,7 @@ export default function ResourceHubs({ isFormOpen, setIsFormOpen }) {
           description: "Resource hub deleted successfully"
         });
       } catch (error) {
+        console.error("Failed to delete resource hub:", error);
         toast({
           title: "Error",
           description: "Failed to delete resource hub",

@@ -31,7 +31,7 @@ export async function POST(request) {
       }
     });
   } catch (error) {
-    console.error("Session creation error:", error);
+    console.error("Failed to create session:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 401
     });

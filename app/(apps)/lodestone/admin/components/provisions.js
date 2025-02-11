@@ -83,6 +83,7 @@ export default function Provisions({ isFormOpen, setIsFormOpen }) {
           description: "Provision deleted successfully"
         });
       } catch (error) {
+        console.error("Failed to delete provision:", error);
         toast({
           title: "Error",
           description: "Failed to delete provision",

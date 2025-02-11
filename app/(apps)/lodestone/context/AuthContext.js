@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
       return result;
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Failed to authenticate with Google:", error);
       throw error;
     }
   };
