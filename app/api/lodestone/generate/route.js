@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase/admin-config";
+import { getFirestore } from "@/lib/firebase/admin-config";
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -41,6 +41,7 @@ function selectRandomProvisions(provisions, targetCount) {
 export async function POST(request) {
   try {
     const { hubId, testMode } = await request.json();
+    const db = getFirestore();
 
     // Get the resource hub
     const hubDoc = await db.collection("resourceHubs").doc(hubId).get();
