@@ -216,19 +216,25 @@ export default function ProvisionForm({
 
   const handleImageDelete = async () => {
     try {
+      // If it's an existing image (has a URL), delete from storage
       if (formData.imageUrl) {
         await deleteImage(formData.imageUrl);
-      } else if (imagePreview) {
+      }
+      // If it's just a preview, revoke the object URL
+      else if (imagePreview) {
         URL.revokeObjectURL(imagePreview);
       }
 
+      // Update form data
       setFormData({
         ...formData,
-        imageUrl: "",
-        imageFile: null
+        imageUrl: ""
       });
+      // Update preview state
       setImagePreview(null);
+      setImageFile(null); // Use the separate imageFile state
 
+      // If editing, update the provision without the image
       if (initialData?.id) {
         await updateProvision(initialData.id, {
           ...formData,
