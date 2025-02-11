@@ -24,6 +24,7 @@ import { useResourceHubs } from "../../context/ResourceHubContext";
 import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
 import { capitalizeWords } from "../../utils/text";
+import { processImage } from "../../utils/image-processing";
 
 export default function ProvisionForm({
   open,
@@ -116,35 +117,18 @@ export default function ProvisionForm({
 
       if (initialData) {
         await updateProvision(initialData.id, dataToSave);
-        toast({
-          title: "Success",
-          description: "Resource updated successfully"
-        });
       } else {
-        const newDocRef = await addProvision(dataToSave);
-
-        const updateHubPromises = resourceHubs
-          .filter((hub) => formData.selectedHubs.includes(hub.id))
-          .map((hub) => {
-            const newSelectedProvisions = [
-              ...(hub.selectedProvisions || []),
-              newDocRef.id
-            ];
-            return updateResourceHub(hub.id, {
-              ...hub,
-              selectedProvisions: newSelectedProvisions
-            });
-          });
-
-        await Promise.all(updateHubPromises);
-
-        toast({
-          title: "Success",
-          description: "Resource created successfully"
-        });
+        await addProvision(dataToSave);
       }
       onOpenChange(false);
+      toast({
+        title: "Success",
+        description: initialData
+          ? "Resource updated successfully"
+          : "Resource created successfully"
+      });
     } catch (error) {
+      console.error("Error in handleSubmit:", error);
       toast({
         title: "Error",
         description: initialData
@@ -196,18 +180,37 @@ export default function ProvisionForm({
     }
   };
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (imagePreview && !formData.imageUrl) {
-        URL.revokeObjectURL(imagePreview);
+      try {
+        if (imagePreview && !formData.imageUrl) {
+          URL.revokeObjectURL(imagePreview);
+        }
+
+        // Process the image before setting it
+        const processedFile = await processImage(file);
+        setImageFile(processedFile);
+
+        // Create preview of the processed image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(processedFile);
+
+        toast({
+          title: "Success",
+          description: "Image processed successfully"
+        });
+      } catch (error) {
+        console.error("Error processing image:", error);
+        toast({
+          title: "Error",
+          description: "Failed to process image",
+          variant: "destructive"
+        });
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
     }
   };
 

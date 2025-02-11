@@ -17,6 +17,7 @@ import { useProvisions } from "../../context/ProvisionContext";
 import { uploadImage, deleteImage } from "../../firebase/storage";
 import { X } from "lucide-react";
 import { capitalizeWords } from "../../utils/text";
+import { processImage } from "../../utils/image-processing";
 
 const RARITY_ORDER = {
   Junk: 0,
@@ -94,15 +95,37 @@ export default function ResourceHubForm({
     }
   }, [open, initialData]);
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        if (imagePreview && !formData.imageUrl) {
+          URL.revokeObjectURL(imagePreview);
+        }
+
+        // Process the image before setting it
+        const processedFile = await processImage(file);
+        setImageFile(processedFile);
+
+        // Create preview of the processed image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(processedFile);
+
+        toast({
+          title: "Success",
+          description: "Image processed successfully"
+        });
+      } catch (error) {
+        console.error("Error processing image:", error);
+        toast({
+          title: "Error",
+          description: "Failed to process image",
+          variant: "destructive"
+        });
+      }
     }
   };
 
