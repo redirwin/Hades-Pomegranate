@@ -63,7 +63,8 @@ const sortItems = (items) => {
 export default function Lodestone() {
   const { user, googleLogin } = useAuth();
   const { resourceHubs, loading, error } = usePublicResourceHubs();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [selectedHub, setSelectedHub] = useState("");
   const [generatedList, setGeneratedList] = useState(null);
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function Lodestone() {
   const { history, addToHistory, clearHistory } = useListHistory();
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
+    setIsLoginLoading(true);
     try {
       const result = await googleLogin();
       if (!result.success) {
@@ -94,14 +95,14 @@ export default function Lodestone() {
         duration: 5000
       });
     } finally {
-      setIsLoading(false);
+      setIsLoginLoading(false);
     }
   };
 
   const handleGenerate = async () => {
     if (!selectedHub) return;
 
-    setIsLoading(true);
+    setIsGenerating(true);
     try {
       const response = await fetch("/api/lodestone/generate", {
         method: "POST",
@@ -133,7 +134,7 @@ export default function Lodestone() {
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
@@ -157,10 +158,10 @@ export default function Lodestone() {
               <Button
                 variant="default"
                 onClick={handleGoogleLogin}
-                disabled={isLoading}
+                disabled={isLoginLoading}
               >
                 <LogIn className="h-4 w-4 mr-2" />
-                <span>{isLoading ? "Logging in..." : "Login"}</span>
+                <span>{isLoginLoading ? "Logging in..." : "Login"}</span>
               </Button>
             )}
           </nav>
@@ -195,12 +196,12 @@ export default function Lodestone() {
               </SelectContent>
             </Select>
             <Button
-              disabled={!selectedHub || isLoading}
+              disabled={!selectedHub || isGenerating}
               onClick={handleGenerate}
             >
               <Wand2 className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">
-                {isLoading ? "Generating..." : "Generate List"}
+                {isGenerating ? "Generating..." : "Generate List"}
               </span>
             </Button>
           </div>
