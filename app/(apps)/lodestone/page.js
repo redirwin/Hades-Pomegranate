@@ -36,6 +36,7 @@ import {
   AccordionItem,
   AccordionTrigger
 } from "@/components/ui/accordion";
+import { Toaster } from "@/components/ui/toaster";
 
 const RARITY_ORDER = {
   Junk: 0,
@@ -73,14 +74,24 @@ export default function Lodestone() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await googleLogin();
-      router.push("/lodestone/admin");
+      const result = await googleLogin();
+      if (!result.success) {
+        toast({
+          title: "Access Denied",
+          description: "Only administrators are allowed to log in.",
+          variant: "destructive",
+          duration: 5000
+        });
+      } else {
+        // Redirect to admin page on successful login
+        router.push("/lodestone/admin");
+      }
     } catch (error) {
-      console.error("Error logging in with Google:", error);
       toast({
         title: "Error",
-        description: "Failed to log in",
-        variant: "destructive"
+        description: "An unexpected error occurred during login.",
+        variant: "destructive",
+        duration: 5000
       });
     } finally {
       setIsLoading(false);
@@ -155,6 +166,7 @@ export default function Lodestone() {
           </nav>
         </div>
       </header>
+      <Toaster />
       <main className="flex-1 container max-w-7xl mx-auto p-4 sm:p-8">
         <div className="flex flex-col items-center justify-center max-w-2xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
