@@ -37,6 +37,7 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { Toaster } from "@/components/ui/toaster";
+import Image from "next/image";
 
 const RARITY_ORDER = {
   Junk: 0,
@@ -144,27 +145,36 @@ export default function Lodestone() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between p-4 sm:p-8 max-w-7xl mx-auto w-full">
+        <div className="flex items-center justify-center gap-4 p-4 sm:p-8 max-w-7xl mx-auto w-full">
+          <Image
+            src="/compass.webp"
+            alt="Compass"
+            width={30}
+            height={30}
+            className="rounded-full"
+          />
           <h1 className="text-xl font-bold">Lodestone</h1>
-          <nav>
-            {user ? (
-              <Button variant="default" asChild>
-                <Link href="/lodestone/admin">
-                  <LayoutDashboard className="h-4 w-4 mr-2" />
-                  <span>Admin</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                onClick={handleGoogleLogin}
-                disabled={isLoginLoading}
-              >
-                <LogIn className="h-4 w-4 mr-2" />
-                <span>{isLoginLoading ? "Logging in..." : "Login"}</span>
-              </Button>
-            )}
-          </nav>
+          <div className="ml-auto">
+            <nav>
+              {user ? (
+                <Button variant="default" asChild>
+                  <Link href="/lodestone/admin">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    <span>Admin</span>
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="default"
+                  onClick={handleGoogleLogin}
+                  disabled={isLoginLoading}
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  <span>{isLoginLoading ? "Logging in..." : "Login"}</span>
+                </Button>
+              )}
+            </nav>
+          </div>
         </div>
       </header>
       <Toaster />

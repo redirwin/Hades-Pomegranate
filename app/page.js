@@ -1,9 +1,17 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
     <div className="min-h-screen p-4 sm:p-8">
       <header className="max-w-5xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-          Hades Pomegranate
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2 flex items-center gap-2">
+          <Image
+            src="/pomegranate.png"
+            alt="Pomegranate"
+            width={32}
+            height={32}
+          />
+          Hades Pomegranates
         </h1>
         <p className="text-lg sm:text-xl text-foreground/80 mb-6 sm:mb-8">
           RPG Tools for Gamers
