@@ -3,7 +3,7 @@ import imageCompression from "browser-image-compression";
 export async function processImage(file, options = {}) {
   const defaultOptions = {
     maxSizeMB: 0.5, // Maximum file size in MB
-    maxWidthOrHeight: 250, // Maximum width/height in pixels
+    maxWidthOrHeight: 500, // Maximum width/height in pixels
     useWebWorker: true,
     fileType: "image/webp",
     initialQuality: 0.8

@@ -72,6 +72,7 @@ export default function Lodestone() {
   const { toast } = useToast();
   const [showHistory, setShowHistory] = useState(false);
   const { history, addToHistory, clearHistory } = useListHistory();
+  const [previewImage, setPreviewImage] = useState(null);
 
   const handleGoogleLogin = async () => {
     setIsLoginLoading(true);
@@ -136,6 +137,12 @@ export default function Lodestone() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleImageClick = (imageUrl, altText) => {
+    if (imageUrl) {
+      setPreviewImage({ url: imageUrl, alt: altText });
     }
   };
 
@@ -221,9 +228,28 @@ export default function Lodestone() {
           {generatedList && (
             <div className="w-full border rounded-lg p-6 space-y-4 relative">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-semibold">
-                  {generatedList.hubName} - Generated List
-                </h3>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded bg-muted flex-shrink-0 overflow-hidden">
+                    {generatedList.hubImage ? (
+                      <img
+                        src={generatedList.hubImage}
+                        alt={generatedList.hubName}
+                        className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() =>
+                          handleImageClick(
+                            generatedList.hubImage,
+                            generatedList.hubName
+                          )
+                        }
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted" />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold">
+                    {generatedList.hubName} - Generated List
+                  </h3>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -239,14 +265,30 @@ export default function Lodestone() {
                     key={`${item.id}-${index}`}
                     className="flex justify-between items-center"
                   >
-                    <div>
-                      <span className="font-medium">
-                        {item.count} {item.name}
-                        {item.count > 1 ? "s" : ""}
-                      </span>
-                      <p className="text-sm text-muted-foreground">
-                        {item.rarity}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded bg-muted flex-shrink-0 overflow-hidden">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() =>
+                              handleImageClick(item.imageUrl, item.name)
+                            }
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-medium">
+                          {item.count} {item.name}
+                          {item.count > 1 ? "s" : ""}
+                        </span>
+                        <p className="text-sm text-muted-foreground">
+                          {item.rarity}
+                        </p>
+                      </div>
                     </div>
                     <span className="text-primary font-medium">
                       {item.price} gp each
@@ -317,7 +359,20 @@ export default function Lodestone() {
                 <AccordionItem key={list.timestamp} value={list.timestamp}>
                   <AccordionTrigger>
                     <div className="flex justify-between items-center w-full pr-4">
-                      <span>{list.hubName}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded bg-muted flex-shrink-0 overflow-hidden">
+                          {list.hubImage ? (
+                            <img
+                              src={list.hubImage}
+                              alt={list.hubName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted" />
+                          )}
+                        </div>
+                        <span>{list.hubName}</span>
+                      </div>
                       <span className="text-sm text-muted-foreground">
                         {format(new Date(list.timestamp), "MMM d, yyyy h:mm a")}
                       </span>
@@ -330,14 +385,27 @@ export default function Lodestone() {
                           key={`${item.id}-${itemIndex}`}
                           className="flex justify-between items-center"
                         >
-                          <div>
-                            <span className="font-medium">
-                              {item.count} {item.name}
-                              {item.count > 1 ? "s" : ""}
-                            </span>
-                            <p className="text-sm text-muted-foreground">
-                              {item.rarity}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded bg-muted flex-shrink-0 overflow-hidden">
+                              {item.imageUrl ? (
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-muted" />
+                              )}
+                            </div>
+                            <div>
+                              <span className="font-medium">
+                                {item.count} {item.name}
+                                {item.count > 1 ? "s" : ""}
+                              </span>
+                              <p className="text-sm text-muted-foreground">
+                                {item.rarity}
+                              </p>
+                            </div>
                           </div>
                           <span className="text-primary font-medium">
                             {item.price} gp each
@@ -371,6 +439,26 @@ export default function Lodestone() {
                 </AccordionItem>
               ))}
             </Accordion>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div
+              className="relative aspect-square sm:aspect-video w-full cursor-pointer"
+              onClick={() => setPreviewImage(null)}
+            >
+              <img
+                src={previewImage.url}
+                alt={previewImage.alt}
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

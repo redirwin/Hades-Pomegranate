@@ -49,7 +49,11 @@ export async function POST(request) {
       throw new Error("Resource hub not found");
     }
 
-    const hub = { id: hubDoc.id, ...hubDoc.data() };
+    const hub = {
+      id: hubDoc.id,
+      ...hubDoc.data(),
+      imageUrl: hubDoc.data().imageUrl || null // Ensure imageUrl is explicitly null if missing
+    };
 
     // Get the rarity settings
     const rarityDoc = await db.collection("settings").doc("rarity").get();
@@ -124,7 +128,8 @@ export async function POST(request) {
           name: provision.name,
           price,
           count: 0,
-          rarity: provision.rarity
+          rarity: provision.rarity,
+          imageUrl: provision.imageUrl
         };
       }
 
@@ -134,6 +139,7 @@ export async function POST(request) {
 
     return Response.json({
       hubName: hub.name,
+      hubImage: hub.imageUrl || null,
       items: Object.values(results)
     });
   } catch (error) {
