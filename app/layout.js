@@ -12,16 +12,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Hades Pomegranates",
+  title: "Hade's Pomegranates",
   description: "Digital Tools for Tabletop Gaming",
   openGraph: {
-    title: "Hades Pomegranates",
+    title: "Hade's Pomegranates",
     description: "Digital Tools for Tabletop Gaming",
     type: "website"
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hades Pomegranates",
+    title: "Hade's Pomegranates",
     description: "Digital Tools for Tabletop Gaming"
   }
 };

@@ -11,7 +11,7 @@ export default function Home() {
             width={32}
             height={32}
           />
-          Hades Pomegranates
+          Hade's Pomegranates
         </h1>
         <p className="text-lg sm:text-xl text-foreground/80 mb-6 sm:mb-8">
           RPG Tools for Gamers
